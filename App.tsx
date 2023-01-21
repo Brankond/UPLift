@@ -14,6 +14,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import {UserTypeSelection} from 'screens/UserTypeSelection';
+import {IAEdition} from 'screens/IAEdition/IAEdition';
 
 import {RootParamList} from 'screens/navigation-types';
 
@@ -31,6 +32,10 @@ const App = () => {
         <Stack.Screen
           name='Role Selection'
           component={UserTypeSelection}
+        />
+        <Stack.Screen
+          name='IA Edition'
+          component={IAEdition}
         />
       </Stack.Navigator>
     </NavigationContainer>
