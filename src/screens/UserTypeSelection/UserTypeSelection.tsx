@@ -6,13 +6,13 @@ import {
   } from 'react-native';
 import {NativeStackScreenProps} from "@react-navigation/native-stack";
   
-import {RootParamList} from "screens/navigation-types";
+import {StackParamList} from "screens/navigation-types";
 
 import {ThemeContext} from 'contexts';
   
 import {Button} from 'components/Button';
 
-type Props = NativeStackScreenProps<RootParamList, 'Role Selection'>
+type Props = NativeStackScreenProps<StackParamList, 'Role Selection'>
 
 export const UserTypeSelection = ({navigation}:Props) => {
   const {theme} = useContext(ThemeContext);
@@ -49,6 +49,9 @@ export const UserTypeSelection = ({navigation}:Props) => {
       </Text>
       <Button
         title="Caregiver"
+        onPress={() => {
+          navigation.navigate('Caregiver')
+        }}
       />
       <Button
         title="Recipient"

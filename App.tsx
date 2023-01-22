@@ -14,11 +14,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 import {UserTypeSelection} from 'screens/UserTypeSelection';
-import {IAEdition} from 'screens/IAEdition/IAEdition';
+import {BottomTabNavigator} from 'screens/Navigators';
 
-import {RootParamList} from 'screens/navigation-types';
+import {StackParamList} from 'screens/navigation-types';
 
-const Stack = createNativeStackNavigator<RootParamList>();
+const Stack = createNativeStackNavigator<StackParamList>();
 
 const App = () => {
   return (
@@ -34,8 +34,8 @@ const App = () => {
           component={UserTypeSelection}
         />
         <Stack.Screen
-          name='IA Edition'
-          component={IAEdition}
+          name='Caregiver'
+          component={BottomTabNavigator}
         />
       </Stack.Navigator>
     </NavigationContainer>
