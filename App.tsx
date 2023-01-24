@@ -13,12 +13,12 @@ import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import {UserTypeSelection} from 'screens/UserTypeSelection';
-import {BottomTabNavigator} from 'screens/Navigators';
+import {RoleSelection} from 'screens/root-stack/RoleSelection';
+import {CaregiverBottomTabNavigator} from 'screens/root-stack/CaregiverBottomTabNavigator';
 
-import {StackParamList} from 'screens/navigation-types';
+import {RootStackParamList} from 'screens/navigation-types';
 
-const Stack = createNativeStackNavigator<StackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
@@ -31,11 +31,11 @@ const App = () => {
       >
         <Stack.Screen
           name='Role Selection'
-          component={UserTypeSelection}
+          component={RoleSelection}
         />
         <Stack.Screen
           name='Caregiver'
-          component={BottomTabNavigator}
+          component={CaregiverBottomTabNavigator}
         />
       </Stack.Navigator>
     </NavigationContainer>

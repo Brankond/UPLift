@@ -1,15 +1,12 @@
 import {Text, View, StyleSheet} from "react-native";
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
 
-import {ImageToSpeechStackParamList} from "screens/navigation-types";
+import {RecipientSelectionProps} from "screens/navigation-types";
 
-type Props = NativeStackScreenProps<ImageToSpeechStackParamList, 'Recipient Selection'>
-
-const RecipientSelection = ({navigation}: Props) => {
+const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
     return (
         <View style={styles.container}>
             <Text>
-                IA Edition
+                Recipient Selection
             </Text>
         </View>
     )

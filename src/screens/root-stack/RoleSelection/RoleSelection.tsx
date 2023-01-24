@@ -4,17 +4,14 @@ import {
     View,
     StyleSheet
   } from 'react-native';
-import {NativeStackScreenProps} from "@react-navigation/native-stack";
-  
-import {StackParamList} from "screens/navigation-types";
+
+import {RoleSelectionProps} from "screens/navigation-types";
 
 import {ThemeContext} from 'contexts';
   
 import {Button} from 'components/Button';
 
-type Props = NativeStackScreenProps<StackParamList, 'Role Selection'>
-
-export const UserTypeSelection = ({navigation}:Props) => {
+export const RoleSelection = ({navigation}: RoleSelectionProps) => {
   const {theme} = useContext(ThemeContext);
   return (
     <View

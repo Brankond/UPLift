@@ -1,15 +1,13 @@
-import {BottomTabScreenProps} from "@react-navigation/bottom-tabs";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 
 import {ImageToSpeechStackParamList} from "screens/navigation-types";
-import {TabParamList} from "screens/navigation-types";
-import {RecipientSelection} from "screens/ImageToSpeech/RecipientSelection/RecipientSelection";
+import {ImageToSpeechStackNavigatorProps} from "screens/navigation-types";
+
+import {RecipientSelection} from "screens/roles/caregiver/features/image-to-speech/RecipientSelection/RecipientSelection";
 
 const Stack = createNativeStackNavigator<ImageToSpeechStackParamList>()
 
-type Props = BottomTabScreenProps<TabParamList, 'Image to Speech'>
-
-const ImageToSpeechStackNavigator = ({navigation}: Props) => {
+const ImageToSpeechStackNavigator = ({navigation}: ImageToSpeechStackNavigatorProps) => {
     return (
         <Stack.Navigator
             initialRouteName='Recipient Selection'
