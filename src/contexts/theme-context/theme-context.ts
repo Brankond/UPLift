@@ -1,7 +1,10 @@
 const palette = {
     blue: "#4690FF",
     white: "#FFFFFB",
-    dark_grey: "#343434"
+    grey: {
+        500: '#575757',
+        700: "#343434"
+    }
 } as const;
 
 const font_size = {
@@ -22,8 +25,12 @@ const typefaces = {
 const theme = {
     colors: {
         background: palette.white,
-        foreground: palette.dark_grey,
-        primary: palette.blue
+        foreground: palette.grey[700],
+        primary: palette.blue,
+        grey: {
+            500: palette.grey[500],
+            700: palette.grey[700]
+        }
     },
     spacing: {
         s: 8,

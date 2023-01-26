@@ -40,8 +40,9 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
             borderRadius: 7
         },
         hr: {
-            borderBottomColor: '#4690FF',
-            borderBottomWidth: 1,
+            backgroundColor: theme.colors.grey[500],
+            height: 0.5,
+            opacity: 0.3,
             marginVertical: 20,
         },
         recipients_list_container: {
@@ -74,7 +75,9 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
 
     const recipients_list = recipients_data.map((recipient) => {
         return (
-            <Pressable style={styles.recipient_card_container}>
+            <Pressable 
+                style={styles.recipient_card_container}
+            >
                 <View style={styles.recipient_card}>
                     <Text style={styles.recipient_text}>
                         {recipient.name}
