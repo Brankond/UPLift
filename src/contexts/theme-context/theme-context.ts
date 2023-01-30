@@ -1,10 +1,6 @@
 const palette = {
     blue: "#4690FF",
     white: "#FFFFFB",
-    grey: {
-        500: '#575757',
-        700: "#343434"
-    }
 } as const;
 
 const font_size = {
@@ -17,6 +13,7 @@ const font_size = {
 
 const typefaces = {
     bold: "Inter-Bold",
+    semi_bold: "Inter-SemiBold",
     medium: "Inter-Medium",
     regular: "Inter-Regular",
     light: "Inter-light"
@@ -25,18 +22,27 @@ const typefaces = {
 const theme = {
     colors: {
         background: palette.white,
-        foreground: palette.grey[700],
+        foreground: '#343434',
         primary: palette.blue,
         grey: {
-            500: palette.grey[500],
-            700: palette.grey[700]
+            300: '#D9D9D9',
+            500: '#575757',
+            700: '#343434'
         }
+    },
+    font_size: {
+        ...font_size
+    },
+    font_family: {
+        ...typefaces
     },
     spacing: {
         s: 8,
+        sm: 14,
         m: 16,
         x: 24,
-        xl: 40
+        xl: 32,
+        l: 48
     },
     type: {
         l0_header: {

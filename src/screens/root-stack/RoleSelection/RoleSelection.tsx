@@ -10,9 +10,26 @@ import {RoleSelectionProps} from "screens/navigation-types";
 import {ThemeContext} from 'contexts';
   
 import {Button} from 'components/Button';
+import { theme } from "native-base";
 
 export const RoleSelection = ({navigation}: RoleSelectionProps) => {
   const {theme} = useContext(ThemeContext);
+
+  const styles = StyleSheet.create({
+    logo: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+      backgroundColor: theme.colors.background
+    },
+    slogan: {
+      height: 100,
+      width: 100,
+      borderRadius: 50,
+      marginBottom: 20,
+    }
+  })
   return (
     <View
       style={{
@@ -56,18 +73,3 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  logo: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100%'
-  },
-  slogan: {
-    height: 100,
-    width: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-  }
-})

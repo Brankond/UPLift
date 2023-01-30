@@ -1,23 +1,28 @@
 import {useContext, useState} from "react";
-import {Text, TextInput, View, Pressable, StyleSheet, Platform, ScrollView} from "react-native";
+import {Text, TextInput, View, Pressable, StyleSheet, Platform, SectionList} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 
 import {RecipientSelectionProps} from "screens/navigation-types";
 
 import {ThemeContext} from "contexts";
 
 // psudo data
-import {recipients_data} from 'data/index'
+import {alphabetic_ordered_recipients_data} from 'data/index'
 
 const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
     const {theme} = useContext(ThemeContext);
-    const [recipients, setRecipients] = useState(recipients_data);
+    const [recipients, setRecipients] = useState(alphabetic_ordered_recipients_data);
 
     const styles = StyleSheet.create({
+        /** body container */
         container: {
             flex: 1,
-            marginHorizontal: 20
+            paddingHorizontal: 20,
+            backgroundColor: theme.colors.background
         },
+
+        /** header */
         header: {
             marginTop: Platform.OS === 'ios' ? 70 : 20,
         },
@@ -26,10 +31,7 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
             color: theme.colors.primary,
             marginBottom: 20
         },
-        search_bar_container: {
-            flexDirection: 'row',
-            alignItems: 'center'
-        },
+        // search bar
         search_bar: {
             flex: 1,
             height: 32,
@@ -39,53 +41,21 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
             backgroundColor: '#E8E8E8',
             borderRadius: 7
         },
+
+        /** shared elements */
         hr: {
             backgroundColor: theme.colors.grey[500],
             height: 0.5,
             opacity: 0.3,
             marginVertical: 20,
         },
-        recipients_list_container: {
-            marginTop: -15,
-            alignSelf: 'center',
+
+        /** utilities */
+        row_centered_flex_box: {
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-        },
-        recipient_card_container: {
-            width: '50%',
-            height: 120,
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 10
-        },
-        recipient_card: {
-            width: '95%',
-            height: '90%',
-            backgroundColor: theme.colors.primary,
-            justifyContent: 'center',
-            borderRadius: 20
-        },
-        recipient_text: {
-            ...theme.type.l2_header,
-            color: theme.colors.background,
-            textAlign: 'center',
+            alignItems: 'center'
         }
     });
-
-    const recipients_list = recipients_data.map((recipient) => {
-        return (
-            <Pressable 
-                style={styles.recipient_card_container}
-            >
-                <View style={styles.recipient_card}>
-                    <Text style={styles.recipient_text}>
-                        {recipient.name}
-                    </Text>
-                </View>
-            </Pressable>
-        )
-    })
 
     return (
         <View style={styles.container}>
@@ -94,7 +64,7 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
                 <Text style={styles.heading_text}>
                     Recipients
                 </Text>
-                <View style={styles.search_bar_container}>
+                <View style={styles.row_centered_flex_box}>
                     <Ionicons 
                         name="search"
                         size={16}
@@ -108,9 +78,106 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
             </View>
 
             {/* recipients list */}
-            <ScrollView contentContainerStyle={styles.recipients_list_container}>
-                {recipients_list}
-            </ScrollView>
+            <SectionList 
+                sections={alphabetic_ordered_recipients_data}
+                renderItem={
+                    ({item}) => (
+                        <Pressable key={item.id} >
+                            <View
+                                style={{
+                                    ...styles.row_centered_flex_box,
+                                    marginTop: 20,
+                                    marginBottom: 28
+                                }}
+                            >   
+                                <View
+                                    style={{
+                                        height: 48,
+                                        width: 48,
+                                        borderRadius: 24,
+                                        backgroundColor: theme.colors.grey[300]
+                                    }}
+                                >
+                                </View>
+                                <View
+                                    style={{
+                                        marginLeft: 16
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontFamily: theme.font_family.semi_bold,
+                                        }}
+                                    >
+                                        {item.name}
+                                    </Text>
+                                    <View
+                                        style={{
+                                            ...styles.row_centered_flex_box,
+                                            marginTop: 7
+                                        }}
+                                    >
+                                        <MaterialIcons 
+                                            name='location-on'
+                                            color={theme.colors.primary}
+                                        />
+                                        <Text
+                                            style={{
+                                                fontFamily: theme.font_family.semi_bold,
+                                                color: theme.colors.primary,
+                                                fontSize: 12
+                                            }}
+                                        >
+                                            at
+                                        </Text>
+                                        <Text
+                                            style={{
+                                                fontSize: theme.font_size.extra_small,
+                                                marginLeft: 6
+                                            }}
+                                        >
+                                            The realtime location of this recipient
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                            <View 
+                                style={{
+                                    ...styles.hr,
+                                    marginVertical: 0,
+                                }}
+                            ></View>
+                        </Pressable>
+                    )
+                }
+                renderSectionHeader={
+                    ({section}) => (
+                        <>
+                            <View style={{backgroundColor: theme.colors.background}}>
+                                <Text 
+                                    style={{
+                                        fontSize: theme.font_size.extra_small
+                                    }}
+                                >
+                                    {section.alphabet}
+                                </Text>
+                                <View
+                                    style={{
+                                        ...styles.hr,
+                                        marginBottom: 0,
+                                        marginTop: 6
+                                    }}
+                                ></View>
+                            </View>
+                        </>
+                    )
+                }
+                renderSectionFooter={
+                    ({section}) => (
+                        <View style={{marginBottom: theme.spacing.l}}></View>
+                    )
+                }
+            />
         </View>
     );
 }
