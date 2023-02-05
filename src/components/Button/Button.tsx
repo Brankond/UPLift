@@ -14,7 +14,7 @@ const Button = ({title, onPress}: ButtonProps) => {
             style={{
                 ...styles.button,
                 borderColor: theme.colors.
-                primary,
+                primary[400],
             }}  
             onPress={()=>{
                 if(onPress) onPress();
@@ -22,9 +22,9 @@ const Button = ({title, onPress}: ButtonProps) => {
         >
             <Text
                 style={{
-                    ...styles.text,
-                    ...theme.type.body,
-                    color: theme.colors.primary,
+                    fontSize: theme.fontSizes.md,
+                    fontWeight: theme.fontWeights.bold,
+                    color: theme.colors.primary[400],
                 }}
             >
                 {title}

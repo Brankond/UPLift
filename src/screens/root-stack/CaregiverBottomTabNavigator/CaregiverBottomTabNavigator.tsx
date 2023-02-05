@@ -40,7 +40,7 @@ const CaregiverBottomTabNavigator = () => {
                     tabBarStyle: {
                         height: Platform.OS === 'ios' ? 100 : 75
                     },
-                    tabBarActiveTintColor: theme.colors.primary,
+                    tabBarActiveTintColor: theme.colors.primary[400],
                     tabBarInactiveTintColor: 'grey',
                     headerShown: false,
                     tabBarShowLabel: false

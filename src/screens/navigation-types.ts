@@ -13,7 +13,17 @@ export type CaregiverTabParamList = {
 };
 
 export type ImageToSpeechStackParamList = {
-    'Recipient Selection': undefined
+    'Recipient Selection': undefined,
+    'Collection Selection': {
+        recipient_name: string,
+        recipient_id: string,
+    },
+    'Gallery': {
+        recipient_id: string,
+        recipient_name: string,
+        collection_id: string,
+        collection_title: string
+    }
 };
 
 export type ForumStackParamList = {
@@ -30,6 +40,8 @@ export type CaregiverBottomTabNavigatorProps = NativeStackScreenProps<RootStackP
 
 export type ImageToSpeechStackNavigatorProps = BottomTabScreenProps<CaregiverTabParamList, 'Image to Speech'>;
 export type RecipientSelectionProps = NativeStackScreenProps<ImageToSpeechStackParamList, 'Recipient Selection'>;
+export type CollectionSelectionProps = NativeStackScreenProps<ImageToSpeechStackParamList, 'Collection Selection'>
+export type GalleryProps = NativeStackScreenProps<ImageToSpeechStackParamList, 'Gallery'>;
 
 export type ForumStackNavigatorProps = BottomTabScreenProps<CaregiverTabParamList, 'Forum'>;
 export type HomeProps = NativeStackScreenProps<ForumStackParamList, 'Home'>

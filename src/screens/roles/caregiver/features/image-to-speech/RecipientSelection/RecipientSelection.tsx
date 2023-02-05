@@ -1,55 +1,23 @@
-import {useContext, useState} from "react";
-import {Text, TextInput, View, Pressable, StyleSheet, Platform, SectionList} from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons"
+// external dependencies
+import {useContext} from "react";
+import {useSelector, useDispatch} from "react-redux";
+import {Text, View, Pressable, StyleSheet, FlatList} from "react-native";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
+// internal dependencies
 import {RecipientSelectionProps} from "screens/navigation-types";
-
 import {ThemeContext} from "contexts";
-
-// psudo data
-import {alphabetic_ordered_recipients_data} from 'data/index'
+import {Header, Divider, SafeAreaContainer} from "components";
+import {selectRecipients, recipientAdded, allRecipientsRemoved} from "store/slices/recipientsSlice";
 
 const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
     const {theme} = useContext(ThemeContext);
-    const [recipients, setRecipients] = useState(alphabetic_ordered_recipients_data);
+    const recipients = useSelector(selectRecipients);
+    const dispatch = useDispatch();
+
+    const new_recipient_id = `${recipients.length + 1}`;
 
     const styles = StyleSheet.create({
-        /** body container */
-        container: {
-            flex: 1,
-            paddingHorizontal: 20,
-            backgroundColor: theme.colors.background
-        },
-
-        /** header */
-        header: {
-            marginTop: Platform.OS === 'ios' ? 70 : 20,
-        },
-        heading_text: {
-            ...theme.type.l1_header,
-            color: theme.colors.primary,
-            marginBottom: 20
-        },
-        // search bar
-        search_bar: {
-            flex: 1,
-            height: 32,
-            fontSize: 14,
-            padding: 8,
-            marginLeft: 5,
-            backgroundColor: '#E8E8E8',
-            borderRadius: 7
-        },
-
-        /** shared elements */
-        hr: {
-            backgroundColor: theme.colors.grey[500],
-            height: 0.5,
-            opacity: 0.3,
-            marginVertical: 20,
-        },
-
         /** utilities */
         row_centered_flex_box: {
             flexDirection: 'row',
@@ -58,128 +26,122 @@ const RecipientSelection = ({navigation}: RecipientSelectionProps) => {
     });
 
     return (
-        <View style={styles.container}>
-            {/* header */}
-            <View style={styles.header}>
-                <Text style={styles.heading_text}>
-                    Recipients
-                </Text>
-                <View style={styles.row_centered_flex_box}>
-                    <Ionicons 
-                        name="search"
-                        size={16}
+        <SafeAreaContainer 
+            child={
+                <>
+                    <Header
+                        title={'recipients'} 
                     />
-                    <TextInput 
-                        style={styles.search_bar}
-                        placeholder="Search"
-                    />
-                </View>
-                <View style={styles.hr}></View>
-            </View>
 
-            {/* recipients list */}
-            <SectionList 
-                sections={alphabetic_ordered_recipients_data}
-                renderItem={
-                    ({item}) => (
-                        <Pressable key={item.id} >
-                            <View
-                                style={{
-                                    ...styles.row_centered_flex_box,
-                                    marginTop: 20,
-                                    marginBottom: 28
-                                }}
-                            >   
-                                <View
-                                    style={{
-                                        height: 48,
-                                        width: 48,
-                                        borderRadius: 24,
-                                        backgroundColor: theme.colors.grey[300]
-                                    }}
+                    <FlatList 
+                        data={recipients}
+                        renderItem={
+                            ({item}) => (
+                                <Pressable 
+                                    key={item.id}
+                                    onPress={() => {
+                                        navigation.navigate('Collection Selection',{recipient_id: item.id, recipient_name: item.name})
+                                    }}    
                                 >
-                                </View>
-                                <View
-                                    style={{
-                                        marginLeft: 16
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            fontFamily: theme.font_family.semi_bold,
-                                        }}
-                                    >
-                                        {item.name}
-                                    </Text>
                                     <View
                                         style={{
                                             ...styles.row_centered_flex_box,
-                                            marginTop: 7
+                                            marginTop: 20,
+                                            marginBottom: 28
                                         }}
-                                    >
-                                        <MaterialIcons 
-                                            name='location-on'
-                                            color={theme.colors.primary}
-                                        />
-                                        <Text
+                                    >   
+                                        <View
                                             style={{
-                                                fontFamily: theme.font_family.semi_bold,
-                                                color: theme.colors.primary,
-                                                fontSize: 12
+                                                height: 48,
+                                                width: 48,
+                                                borderRadius: 24,
+                                                backgroundColor: theme.colors.warmGray[300]
                                             }}
                                         >
-                                            at
-                                        </Text>
-                                        <Text
+                                        </View>
+                                        <View
                                             style={{
-                                                fontSize: theme.font_size.extra_small,
-                                                marginLeft: 6
+                                                marginLeft: 16
                                             }}
                                         >
-                                            The realtime location of this recipient
-                                        </Text>
+                                            <Text
+                                                style={{
+                                                    fontWeight: theme.fontWeights.semibold
+                                                }}
+                                            >
+                                                {item.name}
+                                            </Text>
+                                            <View
+                                                style={{
+                                                    ...styles.row_centered_flex_box,
+                                                    marginTop: 7
+                                                }}
+                                            >
+                                                <MaterialIcons 
+                                                    name='location-on'
+                                                    color={theme.colors.primary[400]}
+                                                />
+                                                <Text
+                                                    style={{
+                                                        fontWeight: theme.fontWeights.semibold,
+                                                        fontSize: theme.fontSizes.xs
+                                                    }}
+                                                >
+                                                    at
+                                                </Text>
+                                                <Text
+                                                    style={{
+                                                        fontSize: theme.fontSizes.xs,
+                                                        marginLeft: theme.sizes["1.5"]
+                                                    }}
+                                                >
+                                                    {item.location}
+                                                </Text>
+                                            </View>
+                                        </View>
                                     </View>
-                                </View>
-                            </View>
-                            <View 
-                                style={{
-                                    ...styles.hr,
-                                    marginVertical: 0,
-                                }}
-                            ></View>
-                        </Pressable>
-                    )
-                }
-                renderSectionHeader={
-                    ({section}) => (
-                        <>
-                            <View style={{backgroundColor: theme.colors.background}}>
-                                <Text 
-                                    style={{
-                                        fontSize: theme.font_size.extra_small
-                                    }}
-                                >
-                                    {section.alphabet}
-                                </Text>
-                                <View
-                                    style={{
-                                        ...styles.hr,
-                                        marginBottom: 0,
-                                        marginTop: 6
-                                    }}
-                                ></View>
-                            </View>
-                        </>
-                    )
-                }
-                renderSectionFooter={
-                    ({section}) => (
-                        <View style={{marginBottom: theme.spacing.l}}></View>
-                    )
-                }
-            />
-        </View>
-    );
-}
+                                    <Divider
+                                        style={{
+                                            marginVertical: 0,
+                                        }}
+                                    />
+                                </Pressable>
+                            )
+                        }
+                    />
 
-export {RecipientSelection}
+                    {/* test redux */}
+                    <Pressable
+                        onPress={() => {
+                            dispatch(recipientAdded({
+                                id: new_recipient_id,
+                                caregiver_id: '1',
+                                name: 'Jack',
+                                date_of_birth: '2001-02-20',
+                                location: '4221 West Side Avenue',
+                                is_fallen: false,
+                                collection_count: 0
+                            }))
+                        }}
+                    >
+                        <Text>
+                            Add a recipient
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        onPress={() => {
+                            dispatch(allRecipientsRemoved())
+                        }}
+                    >
+                        <Text>
+                            Remove all recipients
+                        </Text>
+                    </Pressable>
+                </>
+            }
+        />
+    );
+};
+
+export {RecipientSelection};

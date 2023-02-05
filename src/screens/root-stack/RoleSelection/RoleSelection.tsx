@@ -1,16 +1,11 @@
+// external dependencies
 import {useContext} from "react";
-import {
-    Text,
-    View,
-    StyleSheet
-  } from 'react-native';
+import {Text, View, StyleSheet} from 'react-native';
 
+// internal dependencies
 import {RoleSelectionProps} from "screens/navigation-types";
-
 import {ThemeContext} from 'contexts';
-  
 import {Button} from 'components/Button';
-import { theme } from "native-base";
 
 export const RoleSelection = ({navigation}: RoleSelectionProps) => {
   const {theme} = useContext(ThemeContext);
@@ -21,7 +16,7 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       justifyContent: 'center',
       alignItems: 'center',
       flex: 1,
-      backgroundColor: theme.colors.background
+      backgroundColor: theme.colors.light[50]
     },
     slogan: {
       height: 100,
@@ -29,7 +24,8 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       borderRadius: 50,
       marginBottom: 20,
     }
-  })
+  });
+
   return (
     <View
       style={{
@@ -39,14 +35,15 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       <View
         style={{
           ...styles.slogan,
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.primary[400],
         }}
       >
       </View>
       <Text 
         style={{
-          ...theme.type.l0_header,
-          color: theme.colors.primary,
+          fontSize: theme.fontSizes["5xl"],
+          fontWeight: theme.fontWeights.bold,
+          color: theme.colors.primary[400],
           marginBottom: 75
         }}
       >
@@ -54,8 +51,8 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       </Text>
       <Text
         style={{
-          ...theme.type.body,
-          color: theme.colors.primary,
+          fontSize: theme.fontSizes.md,
+          color: theme.colors.primary[400],
           marginBottom: 15
         }}
       >
@@ -72,4 +69,4 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       />
     </View>
   );
-}
+};
