@@ -1,11 +1,11 @@
-import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import {createStackNavigator} from "@react-navigation/stack";
 
 import {SettingsStackParamList} from "screens/navigation-types";
 import {SettingsStackNavigatorProps} from "screens/navigation-types";
 
 import {MainMenu} from "../MainMenu";
 
-const Stack = createNativeStackNavigator<SettingsStackParamList>();
+const Stack = createStackNavigator<SettingsStackParamList>();
 
 const SettingsStackNavigator = ({navigation}: SettingsStackNavigatorProps) => {
     return (

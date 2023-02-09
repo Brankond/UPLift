@@ -8,7 +8,8 @@ module.exports = {
           components: './src/components',
           contexts: './src/contexts',
           screens: './src/screens',
-          store: './src/store'
+          store: './src/store',
+          hooks: './src/hooks'
         },
         extensions: [".ios.js", ".android.js", ".js", ".json"]
       }

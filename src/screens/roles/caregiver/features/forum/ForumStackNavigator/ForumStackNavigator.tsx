@@ -1,11 +1,11 @@
-import {createNativeStackNavigator} from "@react-navigation/native-stack";
+import {createStackNavigator} from "@react-navigation/stack";
 
 import {ForumStackParamList} from "screens/navigation-types";
 import {ForumStackNavigatorProps} from "screens/navigation-types";
 
 import {Home} from "../Home";
 
-const Stack = createNativeStackNavigator<ForumStackParamList>();
+const Stack = createStackNavigator<ForumStackParamList>();
 
 const ForumStackNavigator = ({navigation}: ForumStackNavigatorProps) => {
     return (

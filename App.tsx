@@ -12,7 +12,7 @@
 import 'react-native-gesture-handler';
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import {NativeBaseProvider} from 'native-base';
 import {Provider} from 'react-redux';
 
@@ -22,7 +22,7 @@ import {CaregiverBottomTabNavigator} from 'screens/root-stack/CaregiverBottomTab
 import {RootStackParamList} from 'screens/navigation-types';
 import store from 'store';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (

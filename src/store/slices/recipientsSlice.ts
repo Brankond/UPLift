@@ -4,10 +4,11 @@ import {createSlice, createEntityAdapter} from "@reduxjs/toolkit";
 // internal dependencies
 import {RootState} from "store";
 
-interface Recipient {
+export interface Recipient {
     id: string,
     caregiver_id: string,
-    name: string,
+    first_name: string,
+    last_name: string
     date_of_birth: string,
     location: string, // change to location object 
     is_fallen: boolean,
@@ -15,7 +16,7 @@ interface Recipient {
 };
 
 const recipientsAdapter = createEntityAdapter<Recipient>({
-    sortComparer: (a, b) => a.name.localeCompare(b.name)
+    sortComparer: (a, b) => a.first_name.localeCompare(b.first_name)
 });
 
 const recipientsSlice = createSlice({

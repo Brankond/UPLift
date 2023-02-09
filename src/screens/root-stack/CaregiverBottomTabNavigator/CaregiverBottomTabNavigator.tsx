@@ -1,13 +1,12 @@
+// external dependencies
 import {useContext} from "react";
 import {Platform} from "react-native";
-
 import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
+// internal dependencies
 import {ThemeContext} from "contexts";
-
 import {CaregiverTabParamList} from "screens/navigation-types";
-
 import {ImageToSpeechStackNavigator} from "screens/roles/caregiver/features/image-to-speech/ImageToSpeechStackNavigator";
 import {ForumStackNavigator} from "screens/roles/caregiver/features/forum/ForumStackNavigator";
 import {SettingsStackNavigator} from "screens/roles/caregiver/features/settings/SettingsStackNavigator";
@@ -18,7 +17,7 @@ const CaregiverBottomTabNavigator = () => {
     const {theme} = useContext(ThemeContext);
 
     return (
-        <Tab.Navigator
+        <Tab.Navigator 
             initialRouteName='Image to Speech'
             screenOptions={
                 ({route}) => ({
