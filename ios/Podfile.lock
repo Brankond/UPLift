@@ -6,6 +6,8 @@ PODS:
     - ExpoModulesCore
   - EXConstants (14.0.2):
     - ExpoModulesCore
+  - EXDocumentPicker (11.0.1):
+    - ExpoModulesCore
   - EXErrorRecovery (4.0.1):
     - ExpoModulesCore
   - EXFileSystem (15.1.1):
@@ -323,6 +325,9 @@ PODS:
     - React-Core
   - react-native-safe-area-context (3.3.2):
     - React-Core
+  - react-native-track-player (3.2.0):
+    - React-Core
+    - SwiftAudioEx (= 0.15.3)
   - React-perflogger (0.70.6)
   - React-RCTActionSheet (0.70.6):
     - React-Core/RCTActionSheetHeaders (= 0.70.6)
@@ -397,6 +402,7 @@ PODS:
   - RNSVG (12.1.1):
     - React
   - SocketRocket (0.6.0)
+  - SwiftAudioEx (0.15.3)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -406,6 +412,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
+  - EXDocumentPicker (from `../node_modules/expo-document-picker/ios`)
   - EXErrorRecovery (from `../node_modules/expo-error-recovery/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
@@ -458,6 +465,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-track-player (from `../node_modules/react-native-track-player`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -491,6 +499,7 @@ SPEC REPOS:
     - libevent
     - OpenSSL-Universal
     - SocketRocket
+    - SwiftAudioEx
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -502,6 +511,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-application/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
+  EXDocumentPicker:
+    :path: "../node_modules/expo-document-picker/ios"
   EXErrorRecovery:
     :path: "../node_modules/expo-error-recovery/ios"
   EXFileSystem:
@@ -556,6 +567,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-get-random-values"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-track-player:
+    :path: "../node_modules/react-native-track-player"
   React-perflogger:
     :path: "../node_modules/react-native/ReactCommon/reactperflogger"
   React-RCTActionSheet:
@@ -595,6 +608,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: 034b1c40a8e9fe1bff76a1e511ee90dff64ad834
   EXConstants: 3c86653c422dd77e40d10cbbabb3025003977415
+  EXDocumentPicker: 067af3535841bd1298d772c0eaa6d262ba9d38a4
   EXErrorRecovery: ae43433feb0608a64dc5b1c8363b3e7769a9ea24
   EXFileSystem: 60602b6eefa6873f97172c684b7537c9760b50d6
   EXFont: 319606bfe48c33b5b5063fb0994afdc496befe80
@@ -634,6 +648,7 @@ SPEC CHECKSUMS:
   React-logger: 1623c216abaa88974afce404dc8f479406bbc3a0
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
+  react-native-track-player: 0c26d981b5097910486cbbeb6d8f5352d41be069
   React-perflogger: 8c79399b0500a30ee8152d0f9f11beae7fc36595
   React-RCTActionSheet: 7316773acabb374642b926c19aef1c115df5c466
   React-RCTAnimation: 5341e288375451297057391227f691d9b2326c3d
@@ -650,6 +665,7 @@ SPEC CHECKSUMS:
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  SwiftAudioEx: 83eabba2940924fc1c0d5cb0896049921365229c
   Yoga: 99caf8d5ab45e9d637ee6e0174ec16fbbb01bcfc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
