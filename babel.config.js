@@ -9,9 +9,10 @@ module.exports = {
           contexts: './src/contexts',
           screens: './src/screens',
           store: './src/store',
-          hooks: './src/hooks'
+          hooks: './src/hooks',
+          utils: './src/utils'
         },
-        extensions: [".ios.js", ".android.js", ".js", ".json"]
+        extensions: [".ios.js", ".android.js", ".js", ".json", ".ts"]
       }
     ]
   ]
