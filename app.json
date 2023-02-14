@@ -1,7 +1,4 @@
 {
   "name": "UPlift",
-  "displayName": "UPlift",
-  "expo": {
-    "plugins": ["expo-image-picker"]
-  }
+  "displayName": "UPlift"
 }
