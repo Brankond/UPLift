@@ -10,7 +10,7 @@ export interface Recipient {
   first_name: string;
   last_name: string;
   avatar: string; // uri of the avatar image
-  date_of_birth: string;
+  date_of_birth: string | undefined;
   location: string; // change to location object
   is_fallen: boolean;
   collection_count: number;

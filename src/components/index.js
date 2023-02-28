@@ -7,6 +7,8 @@ import {SaveButton} from './SaveButton/SaveButton';
 import {AnimatedDeleteButton} from './AnimatedDeleteButton/AnimatedDeleteButton';
 import {HeaderEditToolBar} from './HeaderEditToolBar';
 import {TickSelection} from './TickSelection';
+import {PlayButton} from './PlayButton';
+import {SwipeableRow} from './SwipableRow';
 
 export {
   Button,
@@ -18,4 +20,6 @@ export {
   AnimatedDeleteButton,
   HeaderEditToolBar,
   TickSelection,
+  PlayButton,
+  SwipeableRow,
 };

@@ -54,11 +54,7 @@ const AddEditCollectionModal = ({
   // redux
   const dispatch = useDispatch();
 
-  const addEditCollection = (
-    title: string,
-    recipient_id: string,
-    collection_id: string | undefined,
-  ) => {
+  const addEditCollection = (title: string, recipient_id: string) => {
     if (!collection) {
       dispatch(
         collectionAdded({
@@ -99,7 +95,7 @@ const AddEditCollectionModal = ({
       headerRight: () => (
         <SaveButton
           onPress={() => {
-            addEditCollection(title, recipient_id, collection_id);
+            addEditCollection(title, recipient_id);
             navigation.goBack();
           }}
         />
@@ -138,8 +134,10 @@ const AddEditCollectionModal = ({
           marginTop: theme.sizes[3],
           marginBottom: theme.sizes[6],
         }}
-        onPress={() => {
-          pickImage(setCover);
+        onPress={async () => {
+          const result = await pickImage();
+          if (result.canceled) return;
+          setCover(result.assets[0].uri);
         }}>
         <Text
           style={{

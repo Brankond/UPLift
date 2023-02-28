@@ -1,26 +1,26 @@
-import {useEffect} from "react";
-import {useNavigation} from "@react-navigation/native";
+import {useEffect} from 'react';
+import {useNavigation} from '@react-navigation/native';
 
 const useHideBottomTab = () => {
-    const {getParent} = useNavigation();
+  const {getParent} = useNavigation();
 
-    useEffect(() => {
-        const parent = getParent();
+  useEffect(() => {
+    const parent = getParent();
 
-        parent?.setOptions({
-            tabBarStyle: {
-                display: 'none'
-            }
-        });
+    parent?.setOptions({
+      tabBarStyle: {
+        display: 'none',
+      },
+    });
 
-        return () => {
-            parent?.setOptions({
-                tabBarStyle: {
-                    display: 'flex'
-                }
-            });
-        }
-    }, [])
+    return () => {
+      parent?.setOptions({
+        tabBarStyle: {
+          display: 'flex',
+        },
+      });
+    };
+  }, []);
 };
 
 export {useHideBottomTab};

@@ -11,7 +11,7 @@ import {ImageToSpeechStackNavigatorProps} from 'screens/navigation-types';
 import {RecipientSelection} from '../RecipientSelection';
 import {CollectionSelection} from '../CollectionSelection';
 import {IASet} from '../IASet';
-import {AddEditRecipientModal} from '../modals/AddEditRecipientModal';
+import {AddSetModal} from '../modals/AddSetModal/AddSetModal';
 import {AddEditCollectionModal} from '../modals/AddEditCollectionModal';
 import {Gallery} from '../Gallery';
 
@@ -55,11 +55,11 @@ const ImageToSpeechStackNavigator = ({
         screenOptions={{
           presentation: 'modal',
         }}>
-        <Stack.Screen name="Add Recipient" component={AddEditRecipientModal} />
         <Stack.Screen
           name="Add Collection"
           component={AddEditCollectionModal}
         />
+        <Stack.Screen name="Add Set" component={AddSetModal} />
       </Stack.Group>
     </Stack.Navigator>
   );

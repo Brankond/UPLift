@@ -48,6 +48,16 @@ export const {
   selectIds: selectSetIds,
 } = setsAdapter.getSelectors((state: RootState) => state.sets);
 
+export const selectSetsByIds = (ids: string[]) => {
+  return createSelector(selectSets, sets => {
+    let o: IASet[] = [];
+    ids.forEach(id => {
+      o = [...o, ...sets.filter(set => set.id === id)];
+    });
+    return o;
+  });
+};
+
 export const selectSetIdsByRecipientId = (id: string) => {
   return createSelector(selectSets, sets =>
     sets.filter(set => set.recipient_id === id).map(set => set.id),

@@ -1,18 +1,20 @@
 // external dependencies
 import {Animated, StyleSheet, Pressable} from 'react-native';
-import {useContext} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
 
 interface AnimatedDeleteButtonProps {
-  editButtonAnim: Animated.Value;
+  isEditing: boolean;
+  editingUiAnimatedVal: Animated.Value;
   onPress: () => void;
 }
 
 const AnimatedDeleteButton = ({
-  editButtonAnim,
+  isEditing,
+  editingUiAnimatedVal: editButtonAnim,
   onPress,
 }: AnimatedDeleteButtonProps) => {
   // import theme
@@ -36,35 +38,52 @@ const AnimatedDeleteButton = ({
       bottom: theme.sizes[4],
     },
   });
+
+  const [isEditingUiDisplayed, setIsEditingUiDisplayed] = useState(false);
+
+  useEffect(() => {
+    if (isEditing) {
+      setIsEditingUiDisplayed(true);
+    } else {
+      setTimeout(() => {
+        setIsEditingUiDisplayed(false);
+      }, 150);
+    }
+  }, [isEditing]);
+
   const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 
   return (
-    <Animated.View
-      style={[
-        styles.editionPanelDeleteButton,
-        {
-          opacity: editButtonAnim,
-        },
-      ]}>
-      <Pressable
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onPress={() => {
-          onPress();
-        }}>
-        <AnimatedIcon
-          name="delete"
-          color={theme.colors.danger[500]}
-          size={theme.sizes[8]}
-          style={{
-            transform: [{scale: editButtonAnim}],
-          }}
-        />
-      </Pressable>
-    </Animated.View>
+    <>
+      {isEditingUiDisplayed && (
+        <Animated.View
+          style={[
+            styles.editionPanelDeleteButton,
+            {
+              opacity: editButtonAnim,
+            },
+          ]}>
+          <Pressable
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onPress={() => {
+              onPress();
+            }}>
+            <AnimatedIcon
+              name="delete"
+              color={theme.colors.danger[500]}
+              size={theme.sizes[8]}
+              style={{
+                transform: [{scale: editButtonAnim}],
+              }}
+            />
+          </Pressable>
+        </Animated.View>
+      )}
+    </>
   );
 };
 

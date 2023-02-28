@@ -41,7 +41,6 @@ interface CollectionProps {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   selectedCollections: string[];
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
-  enterAnim: Animated.CompositeAnimation;
 }
 
 const Collection = ({
@@ -160,22 +159,8 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
   const recipient_first_name = route.params.recipient_first_name;
 
   // animation
-  const opacity_scale = useRef(new Animated.Value(0)).current;
-  const opacity_scale_reversed = useRef(
-    Animated.subtract(1, opacity_scale),
-  ).current;
-
-  const enterAnim = Animated.timing(opacity_scale, {
-    toValue: 1,
-    duration: 150,
-    useNativeDriver: true,
-  });
-
-  const exitAnim = Animated.timing(opacity_scale, {
-    toValue: 0,
-    duration: 150,
-    useNativeDriver: true,
-  });
+  const editingUiAnimatedVal = useRef(new Animated.Value(0)).current;
+  const nonEditingUiAnimatedVal = useRef(new Animated.Value(1)).current;
 
   // component states
   const initialCollections: string[] = [];
@@ -188,14 +173,11 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
     navigation.setOptions({
       headerRight: () => (
         <HeaderEditToolBar
-          isEditing={isEditing}
           setIsEditing={setIsEditing}
           itemsNumber={selectedCollections.length}
           itemType="Collection"
-          enterAnim={enterAnim}
-          exitAnim={exitAnim}
-          opacity_scale={opacity_scale}
-          opacity_scale_reversed={opacity_scale_reversed}
+          nonEditingUiAnimatedVal={nonEditingUiAnimatedVal}
+          editingUiAnimatedVal={editingUiAnimatedVal}
           addButtonOnPress={() => {
             navigation.navigate('Add Collection', {
               recipient_id: recipient_id,
@@ -254,7 +236,6 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
                   setIsEditing={setIsEditing}
                   selectedCollections={selectedCollections}
                   setSelectedCollections={setSelectedCollections}
-                  enterAnim={enterAnim}
                 />
               )}
             />
@@ -271,14 +252,13 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
           )}
 
           {/* edition panel */}
-          {isEditing && (
-            <AnimatedDeleteButton
-              editButtonAnim={opacity_scale}
-              onPress={() => {
-                deleteSelectedCollections(selectedCollections, sets);
-              }}
-            />
-          )}
+          <AnimatedDeleteButton
+            isEditing={isEditing}
+            editingUiAnimatedVal={editingUiAnimatedVal}
+            onPress={() => {
+              deleteSelectedCollections(selectedCollections, sets);
+            }}
+          />
         </>
       }
     />

@@ -1,35 +1,32 @@
 // external dependencies
 import {View, Text, Pressable, Animated} from 'react-native';
-import {useContext} from 'react';
+import {useContext, useEffect, useState} from 'react';
 
 // internal dependencies
 import {AddButton} from 'components/AddButton';
 import {ThemeContext} from 'contexts';
+import {fadeIn, fadeOut} from 'utils/animations';
 
 interface HeaderEditToolBarProps {
-  isEditing: boolean;
   setIsEditing: (value: React.SetStateAction<boolean>) => void;
   itemsNumber: number;
-  enterAnim: Animated.CompositeAnimation;
-  exitAnim: Animated.CompositeAnimation;
-  opacity_scale: Animated.Value;
-  opacity_scale_reversed: Animated.AnimatedSubtraction<string | number>;
+  nonEditingUiAnimatedVal: Animated.Value;
+  editingUiAnimatedVal: Animated.Value;
   addButtonOnPress: () => void;
   itemType: string;
 }
 
 const HeaderEditToolBar = ({
-  isEditing,
   setIsEditing,
   itemsNumber,
-  enterAnim,
-  exitAnim,
-  opacity_scale,
-  opacity_scale_reversed,
+  nonEditingUiAnimatedVal,
+  editingUiAnimatedVal,
   addButtonOnPress,
   itemType,
 }: HeaderEditToolBarProps) => {
   const {theme} = useContext(ThemeContext);
+  const [isNonEditingUiDisplayed, setIsNonEditingUiDisplayed] = useState(true);
+  const [isEditingUiDisplayed, setIsEditingUiDisplayed] = useState(false);
 
   return (
     <View
@@ -37,7 +34,52 @@ const HeaderEditToolBar = ({
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-      {isEditing && (
+      {isNonEditingUiDisplayed && (
+        <>
+          <Animated.View
+            style={{
+              opacity: nonEditingUiAnimatedVal,
+            }}>
+            <Pressable
+              style={{
+                paddingVertical: theme.sizes[2],
+                paddingHorizontal: theme.sizes[3],
+                marginRight: theme.sizes[2],
+                borderRadius: theme.sizes['3.5'],
+                backgroundColor: theme.colors.light[200],
+              }}
+              onPress={() => {
+                setIsEditing(true);
+                fadeOut(nonEditingUiAnimatedVal);
+                setTimeout(() => {
+                  setIsNonEditingUiDisplayed(false);
+                  setIsEditingUiDisplayed(true);
+                  fadeIn(editingUiAnimatedVal);
+                }, 150);
+              }}>
+              <Text
+                style={{
+                  color: theme.colors.primary[400],
+                  fontSize: theme.sizes[3],
+                  fontWeight: theme.fontWeights.semibold,
+                }}>
+                Select
+              </Text>
+            </Pressable>
+          </Animated.View>
+          <Animated.View
+            style={{
+              opacity: nonEditingUiAnimatedVal,
+            }}>
+            <AddButton
+              onPress={() => {
+                addButtonOnPress();
+              }}
+            />
+          </Animated.View>
+        </>
+      )}
+      {isEditingUiDisplayed && (
         <>
           {itemsNumber > 0 && (
             <Text
@@ -56,61 +98,22 @@ const HeaderEditToolBar = ({
               marginRight: theme.sizes[4],
             }}
             onPress={() => {
-              exitAnim.start();
+              setIsEditing(false);
+              fadeOut(editingUiAnimatedVal);
               setTimeout(() => {
-                setIsEditing(false);
+                setIsEditingUiDisplayed(false);
+                setIsNonEditingUiDisplayed(true);
+                fadeIn(nonEditingUiAnimatedVal);
               }, 150);
             }}>
             <Animated.Text
               style={{
                 color: theme.colors.primary[400],
-                opacity: opacity_scale,
+                opacity: editingUiAnimatedVal,
               }}>
               Cancel
             </Animated.Text>
           </Pressable>
-        </>
-      )}
-      {!isEditing && (
-        <>
-          <Animated.View
-            style={{
-              opacity: opacity_scale_reversed,
-            }}>
-            <Pressable
-              style={{
-                paddingVertical: theme.sizes[2],
-                paddingHorizontal: theme.sizes[3],
-                marginRight: theme.sizes[2],
-                borderRadius: theme.sizes['3.5'],
-                backgroundColor: theme.colors.light[200],
-              }}
-              onPress={() => {
-                enterAnim.start();
-                setTimeout(() => {
-                  setIsEditing(true);
-                }, 150);
-              }}>
-              <Text
-                style={{
-                  color: theme.colors.primary[400],
-                  fontSize: theme.sizes[3],
-                  fontWeight: theme.fontWeights.semibold,
-                }}>
-                Select
-              </Text>
-            </Pressable>
-          </Animated.View>
-          <Animated.View
-            style={{
-              opacity: opacity_scale_reversed,
-            }}>
-            <AddButton
-              onPress={() => {
-                addButtonOnPress();
-              }}
-            />
-          </Animated.View>
         </>
       )}
     </View>
