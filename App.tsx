@@ -21,8 +21,8 @@ import TrackPlayer from 'react-native-track-player';
 // internal dependencies
 import {RoleSelection} from 'screens/root-stack/RoleSelection';
 import {CaregiverStackNavigator} from 'screens/root-stack/CaregiverStackNavigator';
-import {CaregiverBottomTabNavigator} from 'screens/root-stack/CaregiverBottomTabNavigator';
 import {RootStackParamList} from 'screens/navigation-types';
+import {ThemeContext, theme} from 'contexts';
 import store from 'store';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -38,19 +38,21 @@ const App = () => {
   return (
     <Provider store={store}>
       <NativeBaseProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName="Role Selection"
-            screenOptions={{
-              headerShown: false,
-            }}>
-            <Stack.Screen name="Role Selection" component={RoleSelection} />
-            <Stack.Screen
-              name="Caregiver"
-              component={CaregiverStackNavigator}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <ThemeContext.Provider value={{theme}}>
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName="Role Selection"
+              screenOptions={{
+                headerShown: false,
+              }}>
+              <Stack.Screen name="Role Selection" component={RoleSelection} />
+              <Stack.Screen
+                name="Caregiver"
+                component={CaregiverStackNavigator}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeContext.Provider>
       </NativeBaseProvider>
     </Provider>
   );

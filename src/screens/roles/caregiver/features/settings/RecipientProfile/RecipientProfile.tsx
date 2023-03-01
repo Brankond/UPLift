@@ -8,6 +8,7 @@ import {
   Pressable,
   Animated,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import {useContext, useState, useRef, memo, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
@@ -30,6 +31,7 @@ import {
 import {ThemeContext} from 'contexts';
 import {AppDispatch} from 'store';
 import pickImage from 'utils/pickImage';
+import {Relationship} from '../modals/AddEditEmergencyContact/relationships';
 
 // handlers
 const updatePhotoOnPress = async (dispatch: AppDispatch, id: string) => {
@@ -324,6 +326,82 @@ const InformationCard = memo(
   },
 );
 
+const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
+  const {theme} = useContext(ThemeContext);
+
+  const numbers = contact.contact_number.map((number, index) => (
+    <Text
+      key={index}
+      style={{
+        fontSize: theme.sizes['3.5'],
+        fontFamily: theme.fonts.main,
+        color: theme.colors.primary[400],
+      }}>
+      {number.match(/.{1,4}/g)?.join(' ')}
+    </Text>
+  ));
+
+  const emails = contact.email?.map((email, index) => (
+    <Text
+      key={index}
+      style={{
+        fontSize: theme.sizes['3.5'],
+        fontFamily: theme.fonts.main,
+        color: theme.colors.primary[400],
+      }}>
+      {email}
+    </Text>
+  ));
+
+  return (
+    <View>
+      {/* relationship */}
+      <Text
+        style={{
+          fontFamily: theme.fonts.main,
+          fontWeight: theme.fontWeights.medium,
+          fontSize: theme.sizes[3],
+          marginBottom: theme.sizes[3],
+        }}>
+        {Relationship[contact.relationship]}
+      </Text>
+      {/* name */}
+      <Text
+        style={{
+          textTransform: 'capitalize',
+          marginBottom: theme.sizes[5],
+        }}>
+        {`${contact.first_name} ${contact.last_name}`}
+      </Text>
+      <View style={{}}>
+        <Text
+          style={{
+            fontFamily: theme.fonts.main,
+            fontSize: theme.sizes[3],
+          }}>
+          Number
+        </Text>
+        <Divider
+          style={{marginVertical: theme.sizes[1], marginRight: -theme.sizes[4]}}
+        />
+        {numbers}
+        <Text
+          style={{
+            fontFamily: theme.fonts.main,
+            fontSize: theme.sizes[3],
+            marginTop: theme.sizes[4],
+          }}>
+          Email
+        </Text>
+        <Divider
+          style={{marginVertical: theme.sizes[1], marginRight: -theme.sizes[4]}}
+        />
+        {emails}
+      </View>
+    </View>
+  );
+});
+
 const ContactsCard = memo(
   ({
     recipient_id,
@@ -334,6 +412,12 @@ const ContactsCard = memo(
   }) => {
     const {theme} = useContext(ThemeContext);
     const navigation = useNavigation<RecipientProfileProps['navigation']>();
+
+    console.log(contacts);
+    const contactItems = contacts.map(contact => (
+      <ContactItem contact={contact} key={contact.id} />
+    ));
+
     return (
       <View
         style={{
@@ -344,7 +428,7 @@ const ContactsCard = memo(
           backgroundColor: theme.colors.warmGray[100],
         }}>
         {contacts.length > 0 ? (
-          <View></View>
+          <View>{contactItems}</View>
         ) : (
           <View>
             <Text
@@ -437,26 +521,29 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
       }}>
       <Avatar uri={recipient.avatar} id={recipient.id} />
       <Name firstName={recipient.first_name} lastName={recipient.last_name} />
-      <SectionHeader
-        name="information"
-        setIsEditing={setIsInformationEditing}
-        setSaveSig={setInfoSaveSignal}
-      />
-      <InformationCard
-        firstName={firstName}
-        setFirstName={setFirstName}
-        lastName={lastName}
-        setLastName={setLastName}
-        birthday={dob}
-        isInformationEditing={isInformationEditing}
-        setDatePickerDisplayed={setDatePickerDisplayed}
-      />
-      <SectionHeader
-        name="emergency contacts"
-        setIsEditing={setIsContactsEditing}
-        setSaveSig={setContactsSaveSignal}
-      />
-      <ContactsCard recipient_id={recipientId} contacts={contacts} />
+      <ScrollView>
+        <SectionHeader
+          name="information"
+          setIsEditing={setIsInformationEditing}
+          setSaveSig={setInfoSaveSignal}
+        />
+        <InformationCard
+          firstName={firstName}
+          setFirstName={setFirstName}
+          lastName={lastName}
+          setLastName={setLastName}
+          birthday={dob}
+          isInformationEditing={isInformationEditing}
+          setDatePickerDisplayed={setDatePickerDisplayed}
+        />
+        <SectionHeader
+          name="emergency contacts"
+          setIsEditing={setIsContactsEditing}
+          setSaveSig={setContactsSaveSignal}
+        />
+        <ContactsCard recipient_id={recipientId} contacts={contacts} />
+      </ScrollView>
+
       {datePickerDisplayed && (
         <View
           style={{

@@ -12,7 +12,6 @@ import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import {Box, FlatList} from 'native-base';
 import {createSelector} from '@reduxjs/toolkit';
 import {useSelector, useDispatch} from 'react-redux';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 // internal dependencies
