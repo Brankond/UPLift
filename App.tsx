@@ -8,32 +8,53 @@
  * @format
  */
 
+// external dependencies
+import 'react-native-gesture-handler';
 import * as React from 'react';
-
+import {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createStackNavigator} from '@react-navigation/stack';
+import {NativeBaseProvider} from 'native-base';
+import {Provider} from 'react-redux';
+import TrackPlayer from 'react-native-track-player';
 
-import {UserTypeSelection} from 'screens/UserTypeSelection';
+// internal dependencies
+import {RoleSelection} from 'screens/root-stack/RoleSelection';
+import {CaregiverStackNavigator} from 'screens/root-stack/CaregiverStackNavigator';
+import {RootStackParamList} from 'screens/navigation-types';
+import {ThemeContext, theme} from 'contexts';
+import store from 'store';
 
-import {RootParamList} from 'screens/navigation-types';
-
-const Stack = createNativeStackNavigator<RootParamList>();
+const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
+  useEffect(() => {
+    console.log('Player Setup');
+    (async () => {
+      await TrackPlayer.setupPlayer();
+    })();
+  }, []);
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName='Role Selection'
-        screenOptions={{
-          headerShown: false
-        }}
-      >
-        <Stack.Screen
-          name='Role Selection'
-          component={UserTypeSelection}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <NativeBaseProvider>
+        <ThemeContext.Provider value={{theme}}>
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName="Role Selection"
+              screenOptions={{
+                headerShown: false,
+              }}>
+              <Stack.Screen name="Role Selection" component={RoleSelection} />
+              <Stack.Screen
+                name="Caregiver"
+                component={CaregiverStackNavigator}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </ThemeContext.Provider>
+      </NativeBaseProvider>
+    </Provider>
   );
 };
 
