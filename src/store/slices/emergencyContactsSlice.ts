@@ -16,7 +16,7 @@ export interface EmergencyContact {
   last_name: string;
   relationship: Relationship;
   contact_number: string[];
-  email?: string[];
+  email: string[];
 }
 
 const contactAdapter = createEntityAdapter<EmergencyContact>({

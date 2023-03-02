@@ -26,6 +26,7 @@ import {
 } from 'store/slices/recipientsSlice';
 import {
   EmergencyContact,
+  manyContactsRemoved,
   selectContactsByRecipientId,
 } from 'store/slices/emergencyContactsSlice';
 import {ThemeContext} from 'contexts';
@@ -136,12 +137,15 @@ const SectionHeader = memo(
     name,
     setIsEditing,
     setSaveSig,
+    addOnPress,
   }: {
     name: string;
     setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
     setSaveSig: React.Dispatch<React.SetStateAction<boolean>>;
+    addOnPress?: () => void;
   }) => {
     const {theme} = useContext(ThemeContext);
+    const navigation = useNavigation<RecipientProfileProps['navigation']>();
 
     // animation
     const nonEditingUiAnimatedVal = useRef(new Animated.Value(1)).current;
@@ -178,53 +182,76 @@ const SectionHeader = memo(
             }}>
             {name}
           </Text>
-          {isNonEditingUiDisplayed && (
-            <Pressable
-              onPress={() => {
-                setIsEditing(true);
-                fadeOut(nonEditingUiAnimatedVal);
-                setTimeout(() => {
-                  setIsNonEditingUiDisplayed(false);
-                  setIsEditingUiDisplayed(true);
-                  fadeIn(editingUiAnimatedVal);
-                }, 150);
-              }}>
-              <Animated.Text
-                style={{
-                  fontFamily: theme.fonts.main,
-                  fontSize: theme.sizes[3],
-                  fontWeight: theme.fontWeights.medium,
-                  color: theme.colors.primary[400],
-                  opacity: nonEditingUiAnimatedVal,
+          <View
+            style={{
+              flexDirection: 'row',
+            }}>
+            {isNonEditingUiDisplayed && (
+              <Pressable
+                onPress={() => {
+                  setIsEditing(true);
+                  fadeOut(nonEditingUiAnimatedVal);
+                  setTimeout(() => {
+                    setIsNonEditingUiDisplayed(false);
+                    setIsEditingUiDisplayed(true);
+                    fadeIn(editingUiAnimatedVal);
+                  }, 150);
                 }}>
-                Edit
-              </Animated.Text>
-            </Pressable>
-          )}
-          {isEditingUiDisplayed && (
-            <Pressable
-              onPress={() => {
-                setIsEditing(false);
-                fadeOut(editingUiAnimatedVal);
-                setSaveSig(true);
-                setTimeout(() => {
-                  setIsEditingUiDisplayed(false);
-                  setIsNonEditingUiDisplayed(true);
-                  fadeIn(nonEditingUiAnimatedVal);
-                }, 150);
-              }}>
-              <Animated.Text
-                style={{
-                  fontFamily: theme.fonts.main,
-                  fontSize: theme.sizes[3],
-                  fontWeight: theme.fontWeights.medium,
-                  color: theme.colors.primary[400],
-                  opacity: editingUiAnimatedVal,
+                <Animated.Text
+                  style={{
+                    fontFamily: theme.fonts.main,
+                    fontSize: theme.sizes[3],
+                    fontWeight: theme.fontWeights.medium,
+                    color: theme.colors.primary[400],
+                    opacity: nonEditingUiAnimatedVal,
+                  }}>
+                  Edit
+                </Animated.Text>
+              </Pressable>
+            )}
+            {isEditingUiDisplayed && (
+              <Pressable
+                onPress={() => {
+                  setIsEditing(false);
+                  fadeOut(editingUiAnimatedVal);
+                  setSaveSig(true);
+                  setTimeout(() => {
+                    setIsEditingUiDisplayed(false);
+                    setIsNonEditingUiDisplayed(true);
+                    fadeIn(nonEditingUiAnimatedVal);
+                  }, 150);
                 }}>
-                Save
-              </Animated.Text>
-            </Pressable>
-          )}
+                <Animated.Text
+                  style={{
+                    fontFamily: theme.fonts.main,
+                    fontSize: theme.sizes[3],
+                    fontWeight: theme.fontWeights.medium,
+                    color: theme.colors.primary[400],
+                    opacity: editingUiAnimatedVal,
+                  }}>
+                  Save
+                </Animated.Text>
+              </Pressable>
+            )}
+            {name === 'emergency contacts' && (
+              <Pressable
+                style={{
+                  marginLeft: theme.sizes[2],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => {
+                  if (!addOnPress) return;
+                  addOnPress();
+                }}>
+                <FeatherIcon
+                  name="plus"
+                  color={theme.colors.primary[400]}
+                  size={theme.sizes['3.5']}
+                />
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -330,27 +357,39 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
   const {theme} = useContext(ThemeContext);
 
   const numbers = contact.contact_number.map((number, index) => (
-    <Text
-      key={index}
-      style={{
-        fontSize: theme.sizes['3.5'],
-        fontFamily: theme.fonts.main,
-        color: theme.colors.primary[400],
-      }}>
-      {number.match(/.{1,4}/g)?.join(' ')}
-    </Text>
+    <View>
+      <Text
+        key={index}
+        style={{
+          fontSize: theme.sizes['3.5'],
+          fontFamily: theme.fonts.main,
+          color: theme.colors.primary[400],
+          marginBottom: theme.sizes[2],
+        }}>
+        {number.match(/.{1,4}/g)?.join(' ')}
+      </Text>
+      {/* {index !== contact.contact_number.length - 1 && (
+        <Divider style={{marginVertical: theme.sizes[2]}} />
+      )} */}
+    </View>
   ));
 
-  const emails = contact.email?.map((email, index) => (
-    <Text
-      key={index}
-      style={{
-        fontSize: theme.sizes['3.5'],
-        fontFamily: theme.fonts.main,
-        color: theme.colors.primary[400],
-      }}>
-      {email}
-    </Text>
+  const emails = contact.email.map((email, index) => (
+    <View>
+      <Text
+        key={index}
+        style={{
+          fontSize: theme.sizes['3.5'],
+          fontFamily: theme.fonts.main,
+          color: theme.colors.primary[400],
+          marginBottom: theme.sizes[2],
+        }}>
+        {email}
+      </Text>
+      {/* {index !== contact.email.length - 1 && (
+        <Divider style={{marginVertical: theme.sizes[2]}} />
+      )} */}
+    </View>
   ));
 
   return (
@@ -359,9 +398,9 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
       <Text
         style={{
           fontFamily: theme.fonts.main,
-          fontWeight: theme.fontWeights.medium,
           fontSize: theme.sizes[3],
-          marginBottom: theme.sizes[3],
+          marginBottom: theme.sizes[4],
+          color: theme.colors.warmGray[500],
         }}>
         {Relationship[contact.relationship]}
       </Text>
@@ -369,33 +408,31 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
       <Text
         style={{
           textTransform: 'capitalize',
-          marginBottom: theme.sizes[5],
+          marginBottom: theme.sizes[4],
         }}>
         {`${contact.first_name} ${contact.last_name}`}
       </Text>
       <View style={{}}>
         <Text
           style={{
+            color: theme.colors.warmGray[500],
             fontFamily: theme.fonts.main,
             fontSize: theme.sizes[3],
+            marginBottom: theme.sizes[2],
           }}>
           Number
         </Text>
-        <Divider
-          style={{marginVertical: theme.sizes[1], marginRight: -theme.sizes[4]}}
-        />
         {numbers}
         <Text
           style={{
+            marginTop: theme.sizes[2],
+            color: theme.colors.warmGray[500],
             fontFamily: theme.fonts.main,
             fontSize: theme.sizes[3],
-            marginTop: theme.sizes[4],
+            marginBottom: theme.sizes[2],
           }}>
           Email
         </Text>
-        <Divider
-          style={{marginVertical: theme.sizes[1], marginRight: -theme.sizes[4]}}
-        />
         {emails}
       </View>
     </View>
@@ -403,19 +440,21 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
 });
 
 const ContactsCard = memo(
-  ({
-    recipient_id,
-    contacts,
-  }: {
-    recipient_id: string;
-    contacts: EmergencyContact[];
-  }) => {
+  ({contacts}: {recipient_id: string; contacts: EmergencyContact[]}) => {
     const {theme} = useContext(ThemeContext);
-    const navigation = useNavigation<RecipientProfileProps['navigation']>();
 
-    console.log(contacts);
-    const contactItems = contacts.map(contact => (
-      <ContactItem contact={contact} key={contact.id} />
+    const contactItems = contacts.map((contact, index) => (
+      <>
+        <ContactItem contact={contact} key={contact.id} />
+        {index !== contacts.length - 1 && (
+          <Divider
+            style={{
+              marginVertical: theme.sizes[4],
+              marginRight: -theme.sizes[4],
+            }}
+          />
+        )}
+      </>
     ));
 
     return (
@@ -438,33 +477,6 @@ const ContactsCard = memo(
               }}>
               No Emergency Contact
             </Text>
-            <Divider
-              style={{
-                marginVertical: theme.sizes[4],
-              }}
-            />
-            <Pressable
-              style={{
-                width: theme.sizes[6],
-                height: theme.sizes[6],
-                backgroundColor: theme.colors.primary[400],
-                borderRadius: theme.sizes[3],
-                alignSelf: 'center',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onPress={() => {
-                navigation.navigate('Add Contact', {
-                  recipient_id,
-                  contact_id: undefined,
-                });
-              }}>
-              <FeatherIcon
-                name="plus"
-                color={theme.colors.light[50]}
-                size={theme.sizes[4]}
-              />
-            </Pressable>
           </View>
         )}
       </View>
@@ -540,10 +552,15 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
           name="emergency contacts"
           setIsEditing={setIsContactsEditing}
           setSaveSig={setContactsSaveSignal}
+          addOnPress={() => {
+            navigation.navigate('Add Contact', {
+              recipient_id: recipientId,
+              contact_id: undefined,
+            });
+          }}
         />
         <ContactsCard recipient_id={recipientId} contacts={contacts} />
       </ScrollView>
-
       {datePickerDisplayed && (
         <View
           style={{

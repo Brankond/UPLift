@@ -29,7 +29,6 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 const App = () => {
   useEffect(() => {
-    console.log('Player Setup');
     (async () => {
       await TrackPlayer.setupPlayer();
     })();
