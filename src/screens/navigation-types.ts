@@ -2,6 +2,7 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NavigatorScreenParams} from '@react-navigation/native';
+import {Relationship} from './roles/caregiver/features/settings/modals/AddEditEmergencyContact/relationships';
 
 export type RootStackParamList = {
   'Role Selection': undefined;
@@ -72,6 +73,7 @@ export type SettingsStackParamList = {
     recipient_id: string;
     contact_id: string | undefined;
   };
+  'Select Relationship': undefined;
 };
 
 // Screen Props
@@ -145,4 +147,8 @@ export type AddRecipientModalProps = StackScreenProps<
 export type AddContactModalProps = StackScreenProps<
   SettingsStackParamList,
   'Add Contact'
+>;
+export type RelationshipSelectionModalProps = StackScreenProps<
+  SettingsStackParamList,
+  'Select Relationship'
 >;

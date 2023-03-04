@@ -9,14 +9,23 @@ import {
   Animated,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native';
-import {useContext, useState, useRef, memo, useEffect} from 'react';
+import {
+  useContext,
+  useState,
+  useRef,
+  memo,
+  useEffect,
+  createContext,
+} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 
 // internal dependencies
-import {Divider} from 'components';
+import {Divider, TickSelection} from 'components';
 import {fadeIn, fadeOut} from 'utils/animations';
 import {RecipientProfileProps} from 'screens/navigation-types';
 import {useAppDispatch, useAppSelector} from 'hooks';
@@ -32,7 +41,14 @@ import {
 import {ThemeContext} from 'contexts';
 import {AppDispatch} from 'store';
 import pickImage from 'utils/pickImage';
-import {Relationship} from '../modals/AddEditEmergencyContact/relationships';
+
+// context
+type RecipientProfileContextType = {
+  recipientId: string;
+};
+const RecipientProfileContext = createContext<RecipientProfileContextType>({
+  recipientId: '',
+});
 
 // handlers
 const updatePhotoOnPress = async (dispatch: AppDispatch, id: string) => {
@@ -132,20 +148,51 @@ const Name = memo(
   },
 );
 
+/** Section Header */
+
+// section type enum
+enum SectionType {
+  Information,
+  Contacts,
+}
+
+// contact context
+type ContactSectionContextType = {
+  isEditable: boolean;
+  isEditing: boolean;
+  selectedContacts: string[];
+  setSelectedContacts:
+    | React.Dispatch<React.SetStateAction<string[]>>
+    | undefined;
+};
+
+const ContactSectionContext = createContext<ContactSectionContextType>({
+  isEditable: false,
+  isEditing: false,
+  selectedContacts: [],
+  setSelectedContacts: undefined,
+});
+
+// animated Icon
+const AnimatedFeatherIcon = Animated.createAnimatedComponent(FeatherIcon);
+
 const SectionHeader = memo(
   ({
-    name,
+    type,
     setIsEditing,
     setSaveSig,
     addOnPress,
   }: {
-    name: string;
+    type: SectionType;
     setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
     setSaveSig: React.Dispatch<React.SetStateAction<boolean>>;
     addOnPress?: () => void;
   }) => {
+    // context
     const {theme} = useContext(ThemeContext);
-    const navigation = useNavigation<RecipientProfileProps['navigation']>();
+    const {isEditable: isContactEditable, selectedContacts} = useContext(
+      ContactSectionContext,
+    );
 
     // animation
     const nonEditingUiAnimatedVal = useRef(new Animated.Value(1)).current;
@@ -156,6 +203,153 @@ const SectionHeader = memo(
       useState<boolean>(true);
     const [isEditingUiDisplayed, setIsEditingUiDisplayed] =
       useState<boolean>(false);
+
+    const tools =
+      type === SectionType.Information ? (
+        <>
+          {isNonEditingUiDisplayed && (
+            <Pressable
+              onPress={() => {
+                setIsEditing(true);
+                fadeOut(nonEditingUiAnimatedVal);
+                setTimeout(() => {
+                  setIsNonEditingUiDisplayed(false);
+                  setIsEditingUiDisplayed(true);
+                  fadeIn(editingUiAnimatedVal);
+                }, 150);
+              }}>
+              <Animated.Text
+                style={{
+                  fontFamily: theme.fonts.main,
+                  fontSize: theme.sizes[3],
+                  fontWeight: theme.fontWeights.medium,
+                  color: theme.colors.primary[400],
+                  opacity: nonEditingUiAnimatedVal,
+                }}>
+                Edit
+              </Animated.Text>
+            </Pressable>
+          )}
+          {isEditingUiDisplayed && (
+            <Pressable
+              onPress={() => {
+                setIsEditing(false);
+                fadeOut(editingUiAnimatedVal);
+                setSaveSig(true);
+                setTimeout(() => {
+                  setIsEditingUiDisplayed(false);
+                  setIsNonEditingUiDisplayed(true);
+                  fadeIn(nonEditingUiAnimatedVal);
+                }, 150);
+              }}>
+              <Animated.Text
+                style={{
+                  fontFamily: theme.fonts.main,
+                  fontSize: theme.sizes[3],
+                  fontWeight: theme.fontWeights.medium,
+                  color: theme.colors.primary[400],
+                  opacity: editingUiAnimatedVal,
+                }}>
+                Save
+              </Animated.Text>
+            </Pressable>
+          )}
+        </>
+      ) : (
+        <>
+          {isNonEditingUiDisplayed && (
+            <>
+              {isContactEditable && (
+                <Pressable
+                  onPress={() => {
+                    setIsEditing(true);
+                    fadeOut(nonEditingUiAnimatedVal);
+                    setTimeout(() => {
+                      setIsNonEditingUiDisplayed(false);
+                      setIsEditingUiDisplayed(true);
+                      fadeIn(editingUiAnimatedVal);
+                    }, 150);
+                  }}>
+                  <Animated.Text
+                    style={{
+                      fontFamily: theme.fonts.main,
+                      fontSize: theme.sizes[3],
+                      fontWeight: theme.fontWeights.medium,
+                      color: theme.colors.primary[400],
+                      opacity: nonEditingUiAnimatedVal,
+                    }}>
+                    Select
+                  </Animated.Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={{
+                  marginLeft: theme.sizes[2],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => {
+                  if (!addOnPress) return;
+                  addOnPress();
+                }}>
+                <AnimatedFeatherIcon
+                  style={{
+                    opacity: nonEditingUiAnimatedVal,
+                  }}
+                  name="plus"
+                  color={theme.colors.primary[400]}
+                  size={theme.sizes['3.5']}
+                />
+              </Pressable>
+            </>
+          )}
+          {isEditingUiDisplayed && (
+            <>
+              {selectedContacts.length > 0 && (
+                <Pressable
+                  onPress={() => {
+                    setSaveSig(true);
+                  }}>
+                  <Animated.Text
+                    style={{
+                      fontFamily: theme.fonts.main,
+                      fontSize: theme.sizes[3],
+                      fontWeight: theme.fontWeights.medium,
+                      color: theme.colors.primary[400],
+                      opacity: editingUiAnimatedVal,
+                    }}>
+                    Delete
+                  </Animated.Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={{
+                  marginLeft: theme.sizes[2],
+                }}
+                onPress={() => {
+                  setIsEditing(false);
+                  fadeOut(editingUiAnimatedVal);
+                  setTimeout(() => {
+                    setIsEditingUiDisplayed(false);
+                    setIsNonEditingUiDisplayed(true);
+                    fadeIn(nonEditingUiAnimatedVal);
+                  }, 150);
+                }}>
+                <Animated.Text
+                  style={{
+                    fontFamily: theme.fonts.main,
+                    fontSize: theme.sizes[3],
+                    fontWeight: theme.fontWeights.medium,
+                    color: theme.colors.primary[400],
+                    opacity: editingUiAnimatedVal,
+                  }}>
+                  Done
+                </Animated.Text>
+              </Pressable>
+            </>
+          )}
+        </>
+      );
 
     return (
       <View
@@ -180,83 +374,23 @@ const SectionHeader = memo(
               textTransform: 'capitalize',
               fontSize: theme.sizes[3],
             }}>
-            {name}
+            {type === SectionType.Contacts
+              ? 'Emergency Contacts'
+              : 'Information'}
           </Text>
           <View
             style={{
               flexDirection: 'row',
             }}>
-            {isNonEditingUiDisplayed && (
-              <Pressable
-                onPress={() => {
-                  setIsEditing(true);
-                  fadeOut(nonEditingUiAnimatedVal);
-                  setTimeout(() => {
-                    setIsNonEditingUiDisplayed(false);
-                    setIsEditingUiDisplayed(true);
-                    fadeIn(editingUiAnimatedVal);
-                  }, 150);
-                }}>
-                <Animated.Text
-                  style={{
-                    fontFamily: theme.fonts.main,
-                    fontSize: theme.sizes[3],
-                    fontWeight: theme.fontWeights.medium,
-                    color: theme.colors.primary[400],
-                    opacity: nonEditingUiAnimatedVal,
-                  }}>
-                  Edit
-                </Animated.Text>
-              </Pressable>
-            )}
-            {isEditingUiDisplayed && (
-              <Pressable
-                onPress={() => {
-                  setIsEditing(false);
-                  fadeOut(editingUiAnimatedVal);
-                  setSaveSig(true);
-                  setTimeout(() => {
-                    setIsEditingUiDisplayed(false);
-                    setIsNonEditingUiDisplayed(true);
-                    fadeIn(nonEditingUiAnimatedVal);
-                  }, 150);
-                }}>
-                <Animated.Text
-                  style={{
-                    fontFamily: theme.fonts.main,
-                    fontSize: theme.sizes[3],
-                    fontWeight: theme.fontWeights.medium,
-                    color: theme.colors.primary[400],
-                    opacity: editingUiAnimatedVal,
-                  }}>
-                  Save
-                </Animated.Text>
-              </Pressable>
-            )}
-            {name === 'emergency contacts' && (
-              <Pressable
-                style={{
-                  marginLeft: theme.sizes[2],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onPress={() => {
-                  if (!addOnPress) return;
-                  addOnPress();
-                }}>
-                <FeatherIcon
-                  name="plus"
-                  color={theme.colors.primary[400]}
-                  size={theme.sizes['3.5']}
-                />
-              </Pressable>
-            )}
+            {tools}
           </View>
         </View>
       </View>
     );
   },
 );
+
+/** End of Section Header */
 
 const InformationCard = memo(
   ({
@@ -282,6 +416,17 @@ const InformationCard = memo(
       horizontalRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'center',
+      },
+      textInput: {
+        borderWidth: 0,
+        padding: 0,
+        margin: 0,
+        textAlign: 'right',
+        fontSize: theme.sizes['3.5'],
+      },
+      fieldLabel: {
+        fontSize: theme.sizes['3.5'],
       },
     });
 
@@ -294,17 +439,20 @@ const InformationCard = memo(
           borderRadius: theme.sizes[4],
           backgroundColor: theme.colors.warmGray[100],
         }}>
-        <View style={styles.horizontalRow}>
-          <Text>First Name</Text>
+        <View style={[styles.horizontalRow]}>
+          <Text style={[styles.fieldLabel]}>First Name</Text>
           <TextInput
             placeholder="Not Set"
             editable={isInformationEditing}
-            style={{
-              color:
-                (isInformationEditing && theme.colors.primary[400]) ||
-                (firstName.length == 0 && theme.colors.warmGray[400]) ||
-                'black',
-            }}
+            style={[
+              styles.textInput,
+              {
+                color:
+                  (isInformationEditing && theme.colors.primary[400]) ||
+                  (firstName.length == 0 && theme.colors.warmGray[400]) ||
+                  'black',
+              },
+            ]}
             value={firstName}
             onChangeText={setFirstName}
           />
@@ -313,16 +461,19 @@ const InformationCard = memo(
           style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
         />
         <View style={styles.horizontalRow}>
-          <Text>Last Name</Text>
+          <Text style={[styles.fieldLabel]}>Last Name</Text>
           <TextInput
             placeholder="Not Set"
             editable={isInformationEditing}
-            style={{
-              color:
-                (isInformationEditing && theme.colors.primary[400]) ||
-                (lastName.length == 0 && theme.colors.warmGray[400]) ||
-                'black',
-            }}
+            style={[
+              styles.textInput,
+              {
+                color:
+                  (isInformationEditing && theme.colors.primary[400]) ||
+                  (firstName.length == 0 && theme.colors.warmGray[400]) ||
+                  'black',
+              },
+            ]}
             value={lastName}
             onChangeText={setLastName}
           />
@@ -331,7 +482,7 @@ const InformationCard = memo(
           style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
         />
         <View style={styles.horizontalRow}>
-          <Text>Birthday</Text>
+          <Text style={[styles.fieldLabel]}>Birthday</Text>
           <Pressable
             onPress={() => {
               setDatePickerDisplayed(true);
@@ -353,8 +504,19 @@ const InformationCard = memo(
   },
 );
 
+/** contact card component group */
+
 const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
+  // context data
   const {theme} = useContext(ThemeContext);
+  const {recipientId} = useContext(RecipientProfileContext);
+  const {
+    isEditing: isContactsEditing,
+    selectedContacts,
+    setSelectedContacts,
+  } = useContext(ContactSectionContext);
+
+  const navigation = useNavigation<RecipientProfileProps['navigation']>();
 
   const numbers = contact.contact_number.map((number, index) => (
     <View>
@@ -368,9 +530,6 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
         }}>
         {number.match(/.{1,4}/g)?.join(' ')}
       </Text>
-      {/* {index !== contact.contact_number.length - 1 && (
-        <Divider style={{marginVertical: theme.sizes[2]}} />
-      )} */}
     </View>
   ));
 
@@ -386,14 +545,20 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
         }}>
         {email}
       </Text>
-      {/* {index !== contact.email.length - 1 && (
-        <Divider style={{marginVertical: theme.sizes[2]}} />
-      )} */}
     </View>
   ));
 
-  return (
-    <View>
+  return setSelectedContacts ? (
+    <Pressable
+      disabled={!isContactsEditing}
+      onPress={() => {
+        // toggle if the contact is selected
+        if (selectedContacts.includes(contact.id)) {
+          setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+        } else {
+          setSelectedContacts([...selectedContacts, contact.id]);
+        }
+      }}>
       {/* relationship */}
       <Text
         style={{
@@ -402,87 +567,134 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
           marginBottom: theme.sizes[4],
           color: theme.colors.warmGray[500],
         }}>
-        {Relationship[contact.relationship]}
+        {contact.relationship}
       </Text>
       {/* name */}
-      <Text
+      <View
         style={{
-          textTransform: 'capitalize',
-          marginBottom: theme.sizes[4],
+          marginBottom: isContactsEditing ? 0 : theme.sizes[4],
+          flexDirection: 'row',
+          alignItems: 'center',
         }}>
-        {`${contact.first_name} ${contact.last_name}`}
-      </Text>
-      <View style={{}}>
         <Text
           style={{
-            color: theme.colors.warmGray[500],
-            fontFamily: theme.fonts.main,
-            fontSize: theme.sizes[3],
-            marginBottom: theme.sizes[2],
+            textTransform: 'capitalize',
           }}>
-          Number
+          {`${contact.first_name} ${contact.last_name}`}
         </Text>
-        {numbers}
-        <Text
-          style={{
-            marginTop: theme.sizes[2],
-            color: theme.colors.warmGray[500],
-            fontFamily: theme.fonts.main,
-            fontSize: theme.sizes[3],
-            marginBottom: theme.sizes[2],
-          }}>
-          Email
-        </Text>
-        {emails}
+        {!isContactsEditing && (
+          <Pressable
+            onPress={() => {
+              navigation.navigate('Add Contact', {
+                recipient_id: recipientId,
+                contact_id: contact.id,
+              });
+            }}
+            style={{
+              marginLeft: theme.sizes[2],
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <SimpleLineIcon
+              name="arrow-right"
+              size={10}
+              color={theme.colors.warmGray[500]}
+            />
+          </Pressable>
+        )}
       </View>
+      {!isContactsEditing && (
+        <>
+          <Text
+            style={{
+              color: theme.colors.warmGray[500],
+              fontFamily: theme.fonts.main,
+              fontSize: theme.sizes[3],
+              marginBottom: theme.sizes[2],
+            }}>
+            Number
+          </Text>
+          {numbers}
+          {emails.length > 0 && (
+            <View>
+              <Text
+                style={{
+                  marginTop: theme.sizes[2],
+                  color: theme.colors.warmGray[500],
+                  fontFamily: theme.fonts.main,
+                  fontSize: theme.sizes[3],
+                  marginBottom: theme.sizes[2],
+                }}>
+                Email
+              </Text>
+              {emails}
+            </View>
+          )}
+        </>
+      )}
+      {isContactsEditing && (
+        <TickSelection
+          ticked={selectedContacts.includes(contact.id)}
+          style={{
+            top: 0,
+            right: 0,
+            borderColor: theme.colors.warmGray[400],
+          }}
+        />
+      )}
+    </Pressable>
+  ) : (
+    <></>
+  );
+});
+
+const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
+  // context
+  const {theme} = useContext(ThemeContext);
+  const {isEditing: isContactsEditing} = useContext(ContactSectionContext);
+
+  const contactItems = contacts.map((contact, index) => (
+    <>
+      <ContactItem contact={contact} key={contact.id} />
+      {index !== contacts.length - 1 && (
+        <Divider
+          style={{
+            marginTop: isContactsEditing ? theme.sizes[4] : theme.sizes[2],
+            marginBottom: theme.sizes[4],
+            marginRight: -theme.sizes[4],
+          }}
+        />
+      )}
+    </>
+  ));
+
+  return (
+    <View
+      style={{
+        marginHorizontal: theme.sizes[4],
+        marginBottom: theme.sizes[8],
+        padding: theme.sizes[4],
+        borderRadius: theme.sizes[4],
+        backgroundColor: theme.colors.warmGray[100],
+      }}>
+      {contacts.length > 0 ? (
+        <View>{contactItems}</View>
+      ) : (
+        <View>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: theme.colors.warmGray[400],
+            }}>
+            No Emergency Contact
+          </Text>
+        </View>
+      )}
     </View>
   );
 });
 
-const ContactsCard = memo(
-  ({contacts}: {recipient_id: string; contacts: EmergencyContact[]}) => {
-    const {theme} = useContext(ThemeContext);
-
-    const contactItems = contacts.map((contact, index) => (
-      <>
-        <ContactItem contact={contact} key={contact.id} />
-        {index !== contacts.length - 1 && (
-          <Divider
-            style={{
-              marginVertical: theme.sizes[4],
-              marginRight: -theme.sizes[4],
-            }}
-          />
-        )}
-      </>
-    ));
-
-    return (
-      <View
-        style={{
-          marginHorizontal: theme.sizes[4],
-          marginBottom: theme.sizes[8],
-          padding: theme.sizes[4],
-          borderRadius: theme.sizes[4],
-          backgroundColor: theme.colors.warmGray[100],
-        }}>
-        {contacts.length > 0 ? (
-          <View>{contactItems}</View>
-        ) : (
-          <View>
-            <Text
-              style={{
-                textAlign: 'center',
-                color: theme.colors.warmGray[400],
-              }}>
-              No Emergency Contact
-            </Text>
-          </View>
-        )}
-      </View>
-    );
-  },
-);
+/** End of contact card component group */
 
 // main component
 const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
@@ -500,6 +712,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   // states
   const [isInformationEditing, setIsInformationEditing] =
     useState<boolean>(false);
+  const [isContactEditable, setIsContactEditable] = useState<boolean>(true);
   const [isContactsEditing, setIsContactsEditing] = useState<boolean>(false);
   const [datePickerDisplayed, setDatePickerDisplayed] =
     useState<boolean>(false);
@@ -508,7 +721,9 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   );
   const [lastName, setLastName] = useState<string>(recipient?.last_name || '');
   const [infoSaveSignal, setInfoSaveSignal] = useState<boolean>(false);
-  const [contactsSaveSignal, setContactsSaveSignal] = useState<boolean>(false);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [contactsDeleteSignal, setContactsDeleteSignal] =
+    useState<boolean>(false);
   const [dob, setDob] = useState<Date | undefined>(
     recipient?.date_of_birth ? new Date(recipient?.date_of_birth) : undefined,
   );
@@ -519,68 +734,97 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   }, [isInformationEditing, isContactsEditing]);
 
   useEffect(() => {
+    // save changes to personal informatoin
     if (infoSaveSignal) {
       updateInformation(dispatch, recipientId, firstName, lastName, dob);
       setInfoSaveSignal(false);
     }
-  }, [infoSaveSignal]);
+    // delete selected contacts
+    if (contactsDeleteSignal) {
+      dispatch(manyContactsRemoved(selectedContacts));
+      setSelectedContacts([]);
+      setContactsDeleteSignal(false);
+    }
+  }, [infoSaveSignal, contactsDeleteSignal]);
+
+  // contact section is only editable when the array contains at least 1 item
+  useEffect(() => {
+    if (contacts.length === 0) {
+      setIsContactEditable(false);
+      return;
+    }
+    setIsContactEditable(true);
+  }, [contacts.length]);
 
   return recipient ? (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.light[50],
+    <RecipientProfileContext.Provider
+      value={{
+        recipientId,
       }}>
-      <Avatar uri={recipient.avatar} id={recipient.id} />
-      <Name firstName={recipient.first_name} lastName={recipient.last_name} />
-      <ScrollView>
-        <SectionHeader
-          name="information"
-          setIsEditing={setIsInformationEditing}
-          setSaveSig={setInfoSaveSignal}
-        />
-        <InformationCard
-          firstName={firstName}
-          setFirstName={setFirstName}
-          lastName={lastName}
-          setLastName={setLastName}
-          birthday={dob}
-          isInformationEditing={isInformationEditing}
-          setDatePickerDisplayed={setDatePickerDisplayed}
-        />
-        <SectionHeader
-          name="emergency contacts"
-          setIsEditing={setIsContactsEditing}
-          setSaveSig={setContactsSaveSignal}
-          addOnPress={() => {
-            navigation.navigate('Add Contact', {
-              recipient_id: recipientId,
-              contact_id: undefined,
-            });
-          }}
-        />
-        <ContactsCard recipient_id={recipientId} contacts={contacts} />
-      </ScrollView>
-      {datePickerDisplayed && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
-            backgroundColor: theme.colors.warmGray[200],
-          }}>
-          <DateTimePicker
-            value={dob || new Date('2001-01-01')}
-            mode="date"
-            display="spinner"
-            onChange={(_, date) => {
-              if (!date) return;
-              setDob(date);
-            }}
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.colors.light[50],
+        }}>
+        <Avatar uri={recipient.avatar} id={recipient.id} />
+        <Name firstName={recipient.first_name} lastName={recipient.last_name} />
+        <ScrollView>
+          <SectionHeader
+            type={SectionType.Information}
+            setIsEditing={setIsInformationEditing}
+            setSaveSig={setInfoSaveSignal}
           />
-        </View>
-      )}
-    </SafeAreaView>
+          <InformationCard
+            firstName={firstName}
+            setFirstName={setFirstName}
+            lastName={lastName}
+            setLastName={setLastName}
+            birthday={dob}
+            isInformationEditing={isInformationEditing}
+            setDatePickerDisplayed={setDatePickerDisplayed}
+          />
+          <ContactSectionContext.Provider
+            value={{
+              isEditable: isContactEditable,
+              isEditing: isContactsEditing,
+              selectedContacts,
+              setSelectedContacts,
+            }}>
+            <SectionHeader
+              type={SectionType.Contacts}
+              setIsEditing={setIsContactsEditing}
+              setSaveSig={setContactsDeleteSignal}
+              addOnPress={() => {
+                navigation.navigate('Add Contact', {
+                  recipient_id: recipientId,
+                  contact_id: undefined,
+                });
+              }}
+            />
+            <ContactsCard contacts={contacts} />
+          </ContactSectionContext.Provider>
+        </ScrollView>
+        {datePickerDisplayed && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              width: '100%',
+              backgroundColor: theme.colors.warmGray[200],
+            }}>
+            <DateTimePicker
+              value={dob || new Date('2001-01-01')}
+              mode="date"
+              display="spinner"
+              onChange={(_, date) => {
+                if (!date) return;
+                setDob(date);
+              }}
+            />
+          </View>
+        )}
+      </SafeAreaView>
+    </RecipientProfileContext.Provider>
   ) : (
     <></>
   );

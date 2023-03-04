@@ -7,14 +7,13 @@ import {
 
 // internal dependencies
 import {RootState} from 'store';
-import {Relationship} from 'screens/roles/caregiver/features/settings/modals/AddEditEmergencyContact/relationships';
 
 export interface EmergencyContact {
   id: string;
   recipient_id: string;
   first_name: string;
   last_name: string;
-  relationship: Relationship;
+  relationship: string;
   contact_number: string[];
   email: string[];
 }

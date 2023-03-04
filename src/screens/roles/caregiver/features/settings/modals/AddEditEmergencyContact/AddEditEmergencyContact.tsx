@@ -15,6 +15,7 @@ import {
   TextInput,
   FlatList,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
@@ -22,13 +23,16 @@ import {v4} from 'uuid';
 import {useHeaderHeight} from '@react-navigation/elements';
 
 // internal dependencies
+import {RelationshipContext} from '../../SettingsStackNavigator/SettingsStackNavigator';
 import {ThemeContext} from 'contexts';
 import {AddContactModalProps} from 'screens/navigation-types';
 import {SaveButton, Divider} from 'components';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {selectContactById} from 'store/slices/emergencyContactsSlice';
-import {Relationship} from './relationships';
-import {contactAdded} from 'store/slices/emergencyContactsSlice';
+import {
+  contactAdded,
+  contactUpdated,
+} from 'store/slices/emergencyContactsSlice';
 
 // handlers
 const updateContactMethodEntryValue = (
@@ -41,16 +45,19 @@ const updateContactMethodEntryValue = (
 
 // context
 type ContactContextType = {
-  firstName: string;
-  lastName: string;
   contactNumbers: string[];
   setContactNumbers: React.Dispatch<React.SetStateAction<string[]>>;
   emails: string[];
   setEmails: React.Dispatch<React.SetStateAction<string[]>>;
-  relationship: Relationship;
-  setRelationship: React.Dispatch<React.SetStateAction<Relationship>>;
 };
 const ContactContext = createContext<ContactContextType | null>(null);
+type EditingStateContextType = {
+  isEditing: boolean;
+  setIsEditing?: React.Dispatch<React.SetStateAction<boolean>>;
+};
+const EditingStateContext = createContext<EditingStateContextType>({
+  isEditing: false,
+});
 
 enum ContactMethod {
   Phone,
@@ -80,13 +87,16 @@ const ContactMethodEntryItem = memo(
         : [...contact.contactNumbers]
       : undefined;
 
+    const {setIsEditing: setContextIsEditing} = useContext(EditingStateContext);
     const [entryValue, setEntryValue] = useState<string>(value);
 
     useEffect(() => {
       setEntryValue(value);
     }, [value]);
 
-    return contactMethodEntries && setContactMethodEntries ? (
+    return contactMethodEntries &&
+      setContactMethodEntries &&
+      setContextIsEditing ? (
       <>
         <View
           style={{
@@ -117,6 +127,9 @@ const ContactMethodEntryItem = memo(
             />
           </Pressable>
           <TextInput
+            onFocus={() => {
+              setContextIsEditing(true);
+            }}
             keyboardType={
               method === ContactMethod.Email ? 'email-address' : 'phone-pad'
             }
@@ -136,6 +149,7 @@ const ContactMethodEntryItem = memo(
                 entryValue,
               );
               setContactMethodEntries(contactMethodEntries);
+              setContextIsEditing(false);
             }}
           />
         </View>
@@ -167,7 +181,6 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
       scrollEnabled={false}
       contentContainerStyle={{
         backgroundColor: theme.colors.light[50],
-        marginHorizontal: theme.sizes['3.5'],
         marginTop: theme.sizes[8],
         borderRadius: theme.sizes[4],
       }}
@@ -244,12 +257,26 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
     contact?.contact_number || [],
   );
   const [emails, setEmails] = useState<string[]>(contact?.email || []);
-  const [relationship, setRelationship] = useState<Relationship>(
-    contact?.relationship || Relationship.NotSet,
+  const {
+    relationship: contextRelationship,
+    setRelationship: setContextRelationship,
+  } = useContext(RelationshipContext);
+  const [relationship, setRelationship] = useState<string>(
+    contact?.relationship || 'NotSet',
   );
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
+
+  // effects
+  useEffect(() => {
+    if (!setContextRelationship) return;
+    setContextRelationship(relationship);
+  }, []);
+
+  useEffect(() => {
+    setRelationship(contextRelationship);
+  }, [contextRelationship]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -259,6 +286,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
           <Pressable
             onPress={() => {
               setIsEditing(false);
+              Keyboard.dismiss();
             }}
             style={{
               paddingRight: theme.sizes[4],
@@ -273,101 +301,170 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
           </Pressable>
         ) : (
           <SaveButton
-            onPress={() => {
-              dispatch(
-                contactAdded({
-                  id: v4(),
-                  recipient_id: recipientId,
-                  first_name: firstName,
-                  last_name: lastName,
-                  contact_number: contactNumbers,
-                  email: emails,
-                  relationship: relationship,
-                }),
-              );
-              navigation.goBack();
-            }}
+            onPress={
+              contactId
+                ? () => {
+                    dispatch(
+                      contactUpdated({
+                        id: contactId,
+                        changes: {
+                          first_name: firstName,
+                          last_name: lastName,
+                          contact_number: contactNumbers,
+                          email: emails,
+                          relationship: relationship,
+                        },
+                      }),
+                    );
+                    navigation.goBack();
+                  }
+                : () => {
+                    dispatch(
+                      contactAdded({
+                        id: v4(),
+                        recipient_id: recipientId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        contact_number: contactNumbers,
+                        email: emails,
+                        relationship: relationship,
+                      }),
+                    );
+                    navigation.goBack();
+                  }
+            }
+            disabled={
+              !(
+                (firstName.length > 0 || lastName.length > 0) &&
+                relationship !== 'NotSet' &&
+                contactNumbers.length > 0
+              )
+            }
           />
         ),
     });
-  }, [contactId, firstName, lastName, contactNumbers, emails, relationship]);
+  }, [
+    isEditing,
+    contactId,
+    firstName,
+    lastName,
+    contactNumbers,
+    emails,
+    relationship,
+  ]);
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={headerHeight}>
-      <ContactContext.Provider
-        value={{
-          firstName,
-          lastName,
-          contactNumbers,
-          setContactNumbers,
-          emails,
-          setEmails,
-          relationship,
-          setRelationship,
-        }}>
-        {/* names */}
-        <View
-          style={{
-            marginTop: theme.sizes[8],
-            marginHorizontal: theme.sizes['3.5'],
-            paddingVertical: theme.sizes[4],
-            borderRadius: theme.sizes[4],
-            backgroundColor: theme.colors.light[50],
-            paddingHorizontal: theme.sizes[5],
+      keyboardVerticalOffset={headerHeight}
+      style={{
+        marginHorizontal: theme.sizes['3.5'],
+      }}>
+      <EditingStateContext.Provider value={{isEditing, setIsEditing}}>
+        <ContactContext.Provider
+          value={{
+            contactNumbers,
+            setContactNumbers,
+            emails,
+            setEmails,
           }}>
-          <TextInput
-            ref={firstNameInputRef}
-            onFocus={() => {
-              setIsEditing(true);
-            }}
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="First Name"
-            keyboardType="default"
-          />
-          <Divider style={{marginVertical: theme.sizes[3]}} />
-          <TextInput
-            ref={lastNameInputRef}
-            onFocus={() => {
-              setIsEditing(true);
-            }}
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Last Name"
-            keyboardType="default"
-          />
-        </View>
-        {/* relationship */}
-        <View
-          style={{
-            marginTop: theme.sizes[8],
-            marginHorizontal: theme.sizes['3.5'],
-            paddingHorizontal: theme.sizes[5],
-            paddingVertical: theme.sizes[4],
-            borderRadius: theme.sizes[4],
-            backgroundColor: theme.colors.light[50],
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-          <Text>Relationship</Text>
-          <Pressable>
-            <SimpleLineIcon
-              name="arrow-right"
-              size={11}
-              color={theme.colors.warmGray[500]}
+          {/* names */}
+          <View
+            style={{
+              marginTop: theme.sizes[8],
+              paddingVertical: theme.sizes[4],
+              borderRadius: theme.sizes[4],
+              backgroundColor: theme.colors.light[50],
+              paddingHorizontal: theme.sizes[5],
+            }}>
+            <TextInput
+              ref={firstNameInputRef}
+              onFocus={() => {
+                setIsEditing(true);
+              }}
+              value={firstName}
+              onChangeText={setFirstName}
+              onEndEditing={() => {
+                setIsEditing(false);
+              }}
+              placeholder="First Name"
+              keyboardType="default"
             />
-          </Pressable>
-        </View>
-        {/* phone numbers */}
+            <Divider style={{marginVertical: theme.sizes[3]}} />
+            <TextInput
+              ref={lastNameInputRef}
+              onFocus={() => {
+                setIsEditing(true);
+              }}
+              value={lastName}
+              onChangeText={setLastName}
+              onEndEditing={() => {
+                setIsEditing(false);
+              }}
+              placeholder="Last Name"
+              keyboardType="default"
+            />
+          </View>
+          {/* relationship */}
+          <View
+            style={{
+              marginTop: theme.sizes[8],
+              paddingHorizontal: theme.sizes[5],
+              paddingVertical: theme.sizes[4],
+              borderRadius: theme.sizes[4],
+              backgroundColor: theme.colors.light[50],
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Text>Relationship</Text>
+            <Pressable
+              onPress={() => {
+                navigation.navigate('Select Relationship');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.main,
+                  color: theme.colors.warmGray[400],
+                  marginRight: theme.sizes[1],
+                }}>
+                {relationship}
+              </Text>
+              <SimpleLineIcon
+                name="arrow-right"
+                size={11}
+                color={theme.colors.warmGray[500]}
+              />
+            </Pressable>
+          </View>
+          <Text
+            style={{
+              marginTop: theme.sizes[2],
+              paddingHorizontal: theme.sizes[5],
+              color: theme.colors.warmGray[400],
+            }}>
+            Relationship between the contact and the recipient is required
+          </Text>
+          {/* phone numbers */}
 
-        <ContactMethodEntryList method={ContactMethod.Phone} />
+          <ContactMethodEntryList method={ContactMethod.Phone} />
+          <Text
+            style={{
+              marginTop: theme.sizes[2],
+              paddingHorizontal: theme.sizes[5],
+              color: theme.colors.warmGray[400],
+            }}>
+            At least 1 contact number needs to be added
+          </Text>
 
-        {/* emails */}
-        <ContactMethodEntryList method={ContactMethod.Email} />
-      </ContactContext.Provider>
+          {/* emails */}
+          <ContactMethodEntryList method={ContactMethod.Email} />
+        </ContactContext.Provider>
+      </EditingStateContext.Provider>
     </KeyboardAvoidingView>
   );
 };

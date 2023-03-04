@@ -139,12 +139,12 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           <SaveButton
             onPress={() => {
               addEditRecipient(firstName, lastName, birthday, recipient_id);
-              commitAddRecipient(
-                firstName,
-                lastName,
-                birthday?.toString(),
-                photo,
-              );
+              // commitAddRecipient(
+              //   firstName,
+              //   lastName,
+              //   birthday?.toString(),
+              //   photo,
+              // );
               navigation.goBack();
             }}
           />
