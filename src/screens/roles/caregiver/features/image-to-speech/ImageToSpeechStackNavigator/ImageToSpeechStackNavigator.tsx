@@ -42,6 +42,9 @@ const ImageToSpeechStackNavigator = ({
             size={theme.sizes[5]}
           />
         ),
+        headerTitleStyle: {
+          color: theme.colors.tintedGrey[900],
+        },
         headerTitle: '',
       }}>
       <Stack.Screen name="Recipient Selection" component={RecipientSelection} />

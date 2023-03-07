@@ -147,7 +147,7 @@ const IASet = ({navigation, route}: SetProps) => {
             style={{
               width: width,
               height: width,
-              backgroundColor: theme.colors.warmGray[100],
+              backgroundColor: theme.colors.tintedGrey[100],
             }}>
             <Image
               source={{

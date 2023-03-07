@@ -172,7 +172,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
         style={{
           height: theme.sizes[40],
           width: theme.sizes[40],
-          backgroundColor: theme.colors.warmGray[300],
+          backgroundColor: theme.colors.tintedGrey[300],
           borderRadius: theme.sizes[20],
           marginTop: theme.sizes[8],
         }}>

@@ -98,7 +98,7 @@ const Avatar = memo(({id, uri}: {id: string; uri: string}) => {
           width: theme.sizes[32],
           height: theme.sizes[32],
           borderRadius: theme.sizes[16],
-          backgroundColor: theme.colors.warmGray[300],
+          backgroundColor: theme.colors.tintedGrey[300],
         }}>
         {uri.length > 0 && (
           <Image
@@ -437,11 +437,12 @@ const InformationCard = memo(
           marginBottom: theme.sizes[8],
           padding: theme.sizes[4],
           borderRadius: theme.sizes[4],
-          backgroundColor: theme.colors.warmGray[100],
+          backgroundColor: theme.colors.tintedGrey[100],
         }}>
         <View style={[styles.horizontalRow]}>
           <Text style={[styles.fieldLabel]}>First Name</Text>
           <TextInput
+            placeholderTextColor={theme.colors.tintedGrey[600]}
             placeholder="Not Set"
             editable={isInformationEditing}
             style={[
@@ -449,7 +450,7 @@ const InformationCard = memo(
               {
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
-                  (firstName.length == 0 && theme.colors.warmGray[400]) ||
+                  (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
                   'black',
               },
             ]}
@@ -463,6 +464,7 @@ const InformationCard = memo(
         <View style={styles.horizontalRow}>
           <Text style={[styles.fieldLabel]}>Last Name</Text>
           <TextInput
+            placeholderTextColor={theme.colors.tintedGrey[600]}
             placeholder="Not Set"
             editable={isInformationEditing}
             style={[
@@ -470,7 +472,7 @@ const InformationCard = memo(
               {
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
-                  (firstName.length == 0 && theme.colors.warmGray[400]) ||
+                  (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
                   'black',
               },
             ]}
@@ -492,7 +494,7 @@ const InformationCard = memo(
               style={{
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
-                  (!birthday && theme.colors.warmGray[400]) ||
+                  (!birthday && theme.colors.tintedGrey[600]) ||
                   'black',
               }}>
               {birthday ? birthday.toLocaleDateString() : 'Not Set'}
@@ -565,7 +567,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
           fontFamily: theme.fonts.main,
           fontSize: theme.sizes[3],
           marginBottom: theme.sizes[4],
-          color: theme.colors.warmGray[500],
+          color: theme.colors.tintedGrey[500],
         }}>
         {contact.relationship}
       </Text>
@@ -598,7 +600,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
             <SimpleLineIcon
               name="arrow-right"
               size={10}
-              color={theme.colors.warmGray[500]}
+              color={theme.colors.tintedGrey[500]}
             />
           </Pressable>
         )}
@@ -607,7 +609,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
         <>
           <Text
             style={{
-              color: theme.colors.warmGray[500],
+              color: theme.colors.tintedGrey[500],
               fontFamily: theme.fonts.main,
               fontSize: theme.sizes[3],
               marginBottom: theme.sizes[2],
@@ -620,7 +622,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
               <Text
                 style={{
                   marginTop: theme.sizes[2],
-                  color: theme.colors.warmGray[500],
+                  color: theme.colors.tintedGrey[500],
                   fontFamily: theme.fonts.main,
                   fontSize: theme.sizes[3],
                   marginBottom: theme.sizes[2],
@@ -638,7 +640,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
           style={{
             top: 0,
             right: 0,
-            borderColor: theme.colors.warmGray[400],
+            borderColor: theme.colors.tintedGrey[400],
           }}
         />
       )}
@@ -675,7 +677,7 @@ const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
         marginBottom: theme.sizes[8],
         padding: theme.sizes[4],
         borderRadius: theme.sizes[4],
-        backgroundColor: theme.colors.warmGray[100],
+        backgroundColor: theme.colors.tintedGrey[100],
       }}>
       {contacts.length > 0 ? (
         <View>{contactItems}</View>
@@ -684,7 +686,7 @@ const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
           <Text
             style={{
               textAlign: 'center',
-              color: theme.colors.warmGray[400],
+              color: theme.colors.tintedGrey[600],
             }}>
             No Emergency Contact
           </Text>
@@ -810,7 +812,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
               position: 'absolute',
               bottom: 0,
               width: '100%',
-              backgroundColor: theme.colors.warmGray[200],
+              backgroundColor: theme.colors.tintedGrey[200],
             }}>
             <DateTimePicker
               value={dob || new Date('2001-01-01')}

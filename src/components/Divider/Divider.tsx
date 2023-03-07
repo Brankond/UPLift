@@ -1,28 +1,26 @@
-import {View} from "react-native";
+import {View} from 'react-native';
 
-import {ThemeContext} from "contexts";
-import { useContext } from "react";
+import {ThemeContext} from 'contexts';
+import {useContext} from 'react';
 
 type DividerProps = {
-    style?: {}
-}
+  style?: {};
+};
 
 const Divider = ({style}: DividerProps) => {
-    const {theme} = useContext(ThemeContext);
-    return (
-        <View
-            style={[
-                {
-                    backgroundColor: theme.colors.warmGray[500],
-                    height: 0.5,
-                    opacity: 0.3,
-                    marginVertical: 20,
-                },
-                style
-            ]}
-        >   
-        </View>
-    )
+  const {theme} = useContext(ThemeContext);
+  return (
+    <View
+      style={[
+        {
+          backgroundColor: theme.colors.tintedGrey[700],
+          height: 0.5,
+          opacity: 0.3,
+          marginVertical: 20,
+        },
+        style,
+      ]}></View>
+  );
 };
 
 export {Divider};

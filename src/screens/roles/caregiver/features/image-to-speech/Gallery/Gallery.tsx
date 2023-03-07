@@ -106,7 +106,7 @@ const Gallery = ({navigation, route}: GalleryProps) => {
                   <View
                     style={{
                       flex: 1,
-                      backgroundColor: theme.colors.warmGray[300],
+                      backgroundColor: theme.colors.tintedGrey[300],
                     }}>
                     {item.image_path.length > 0 && (
                       <Image
@@ -130,7 +130,7 @@ const Gallery = ({navigation, route}: GalleryProps) => {
               style={{
                 flex: 1,
                 fontSize: theme.sizes[3],
-                color: theme.colors.warmGray[400],
+                color: theme.colors.tintedGrey[600],
                 textAlign: 'center',
               }}>
               No Set

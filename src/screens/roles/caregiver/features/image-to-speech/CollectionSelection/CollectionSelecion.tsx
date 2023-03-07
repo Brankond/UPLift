@@ -103,7 +103,7 @@ const Collection = ({
         style={{
           height: grid_dimension,
           width: '100%',
-          backgroundColor: theme.colors.warmGray[300],
+          backgroundColor: theme.colors.tintedGrey[300],
           borderRadius: 16,
           marginBottom: theme.sizes['1.5'],
         }}>
@@ -133,7 +133,7 @@ const Collection = ({
         <Box flexDirection="row" alignItems="center">
           <Text
             style={{
-              color: theme.colors.warmGray[500],
+              color: theme.colors.tintedGrey[600],
               marginRight: 2,
             }}>
             {collection.set_count}
@@ -141,7 +141,7 @@ const Collection = ({
           <SimpleLineIcon
             name="arrow-right"
             size={11}
-            color={theme.colors.warmGray[500]}
+            color={theme.colors.tintedGrey[600]}
           />
         </Box>
       </View>
@@ -243,7 +243,7 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
               style={{
                 flex: 1,
                 fontSize: theme.sizes[3],
-                color: theme.colors.warmGray[400],
+                color: theme.colors.tintedGrey[600],
                 textAlign: 'center',
               }}>
               No Collection

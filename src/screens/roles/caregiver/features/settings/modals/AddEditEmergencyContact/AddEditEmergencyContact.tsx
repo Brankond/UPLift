@@ -127,6 +127,7 @@ const ContactMethodEntryItem = memo(
             />
           </Pressable>
           <TextInput
+            placeholderTextColor={theme.colors.tintedGrey[500]}
             onFocus={() => {
               setContextIsEditing(true);
             }}
@@ -278,6 +279,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
     setRelationship(contextRelationship);
   }, [contextRelationship]);
 
+  // configure header
   useEffect(() => {
     navigation.setOptions({
       headerTitle: (contactId && 'Edit Contact') || 'Add Contact',
@@ -378,6 +380,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
               paddingHorizontal: theme.sizes[5],
             }}>
             <TextInput
+              placeholderTextColor={theme.colors.tintedGrey[500]}
               ref={firstNameInputRef}
               onFocus={() => {
                 setIsEditing(true);
@@ -392,6 +395,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
             />
             <Divider style={{marginVertical: theme.sizes[3]}} />
             <TextInput
+              placeholderTextColor={theme.colors.tintedGrey[500]}
               ref={lastNameInputRef}
               onFocus={() => {
                 setIsEditing(true);
@@ -429,7 +433,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
               <Text
                 style={{
                   fontFamily: theme.fonts.main,
-                  color: theme.colors.warmGray[400],
+                  color: theme.colors.tintedGrey[600],
                   marginRight: theme.sizes[1],
                 }}>
                 {relationship}
@@ -437,7 +441,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
               <SimpleLineIcon
                 name="arrow-right"
                 size={11}
-                color={theme.colors.warmGray[500]}
+                color={theme.colors.tintedGrey[600]}
               />
             </Pressable>
           </View>
@@ -445,7 +449,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
             style={{
               marginTop: theme.sizes[2],
               paddingHorizontal: theme.sizes[5],
-              color: theme.colors.warmGray[400],
+              color: theme.colors.tintedGrey[600],
             }}>
             Relationship between the contact and the recipient is required
           </Text>
@@ -456,7 +460,7 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
             style={{
               marginTop: theme.sizes[2],
               paddingHorizontal: theme.sizes[5],
-              color: theme.colors.warmGray[400],
+              color: theme.colors.tintedGrey[600],
             }}>
             At least 1 contact number needs to be added
           </Text>

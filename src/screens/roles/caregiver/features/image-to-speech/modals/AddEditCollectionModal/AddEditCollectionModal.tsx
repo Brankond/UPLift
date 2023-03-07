@@ -116,7 +116,7 @@ const AddEditCollectionModal = ({
           height: theme.sizes[40],
           width: theme.sizes[40],
           borderRadius: theme.sizes[6],
-          backgroundColor: theme.colors.warmGray[300],
+          backgroundColor: theme.colors.tintedGrey[300],
           marginTop: theme.sizes[8],
         }}>
         {cover.length > 0 && (

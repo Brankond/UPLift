@@ -5,6 +5,8 @@ import {NavigatorScreenParams} from '@react-navigation/native';
 import {Relationship} from './roles/caregiver/features/settings/modals/AddEditEmergencyContact/relationships';
 
 export type RootStackParamList = {
+  Login: undefined;
+  Signup: undefined;
   'Role Selection': undefined;
   Caregiver: undefined;
   Recipient: undefined;
@@ -77,6 +79,9 @@ export type SettingsStackParamList = {
 };
 
 // Screen Props
+export type LoginProps = StackScreenProps<RootStackParamList, 'Login'>;
+export type SignupProps = StackScreenProps<RootStackParamList, 'Signup'>;
+
 export type RoleSelectionProps = StackScreenProps<
   RootStackParamList,
   'Role Selection'

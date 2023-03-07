@@ -183,7 +183,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
               style={{
                 width: width - theme.sizes[7],
                 height: width - theme.sizes[7],
-                backgroundColor: theme.colors.warmGray[300],
+                backgroundColor: theme.colors.tintedGrey[300],
                 borderRadius: theme.sizes[6],
               }}>
               {image.length > 0 && (

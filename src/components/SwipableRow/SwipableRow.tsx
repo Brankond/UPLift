@@ -110,7 +110,7 @@ const SwipeableRow = ({
               height: 48,
               width: 48,
               borderRadius: 24,
-              backgroundColor: theme.colors.warmGray[300],
+              backgroundColor: theme.colors.tintedGrey[300],
             }}>
             {recipient.avatar.length > 0 && (
               <Image
@@ -187,7 +187,7 @@ const SwipeableRow = ({
             height: 48,
             width: 48,
             borderRadius: 24,
-            backgroundColor: theme.colors.warmGray[300],
+            backgroundColor: theme.colors.tintedGrey[300],
           }}>
           {recipient.avatar.length > 0 && (
             <Image

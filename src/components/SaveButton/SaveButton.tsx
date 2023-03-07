@@ -25,7 +25,7 @@ const SaveButton = ({onPress, disabled = false}: SaveButtonProps) => {
       <Text
         style={{
           color: disabled
-            ? theme.colors.warmGray[400]
+            ? theme.colors.tintedGrey[600]
             : theme.colors.primary[400],
           fontWeight: theme.fontWeights.semibold,
         }}>

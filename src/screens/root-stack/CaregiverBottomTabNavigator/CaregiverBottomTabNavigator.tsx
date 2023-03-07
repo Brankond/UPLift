@@ -36,7 +36,7 @@ const CaregiverBottomTabNavigator = () => {
         },
         headerShadowVisible: false,
         tabBarActiveTintColor: theme.colors.primary[400],
-        tabBarInactiveTintColor: 'grey',
+        tabBarInactiveTintColor: theme.colors.tintedGrey[700],
         headerTitle: '',
         tabBarShowLabel: false,
       })}>

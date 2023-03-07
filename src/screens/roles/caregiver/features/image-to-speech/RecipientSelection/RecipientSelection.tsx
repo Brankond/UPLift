@@ -60,7 +60,7 @@ const RecipientSelection = () => {
               style={{
                 flex: 1,
                 fontSize: theme.sizes[3],
-                color: theme.colors.warmGray[400],
+                color: theme.colors.tintedGrey[700],
                 textAlign: 'center',
               }}>
               No Recipient

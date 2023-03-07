@@ -124,7 +124,7 @@ const RecipientList = ({
               ticked={selectedRecipients.includes(item.id)}
               style={{
                 top: '50%',
-                borderColor: theme.colors.warmGray[300],
+                borderColor: theme.colors.tintedGrey[300],
                 transform: [{translateY: -theme.sizes[3]}],
               }}
             />
