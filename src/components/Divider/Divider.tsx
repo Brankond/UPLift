@@ -13,7 +13,7 @@ const Divider = ({style}: DividerProps) => {
     <View
       style={[
         {
-          backgroundColor: theme.colors.tintedGrey[700],
+          backgroundColor: theme.colors.tintedGrey[800],
           height: 0.5,
           opacity: 0.3,
           marginVertical: 20,

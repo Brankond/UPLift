@@ -26,7 +26,6 @@ const CaregiverBottomTabNavigator = () => {
             'Recipient Selection': 'dashboard-customize',
             'Main Menu': 'settings',
           };
-
           return (
             <MaterialIcons name={icons[route.name]} color={color} size={size} />
           );

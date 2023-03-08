@@ -13,8 +13,11 @@ import 'react-native-get-random-values';
 import {v4} from 'uuid';
 import Picker from '@react-native-community/datetimepicker';
 import {collection, addDoc} from 'firebase/firestore';
+import {SvgXml} from 'react-native-svg';
 
 // internal dependencies
+import {Keyboard} from 'react-native';
+import {generalStyles} from 'screens/root-stack/Authentication/authStyles';
 import {db} from 'environment/config';
 import {AddRecipientModalProps} from 'screens/navigation-types';
 import {Divider, SaveButton} from 'components';
@@ -115,6 +118,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
   };
 
   // onload effects
+  // configure header
   useEffect(() => {
     navigation.setOptions({
       headerTitle: 'Add Recipient',
@@ -137,6 +141,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           </Pressable>
         ) : (
           <SaveButton
+            disabled={!(firstName.length > 0 || lastName.length > 0)}
             onPress={() => {
               addEditRecipient(firstName, lastName, birthday, recipient_id);
               // commitAddRecipient(
@@ -150,12 +155,12 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           />
         ),
     });
-  });
+  }, [firstName, lastName, isEditing]);
 
+  // close datePicker when editing is finished
   useEffect(() => {
     if (!isEditing) {
-      firstNameInputRef.current?.blur();
-      lastNameInputRef.current?.blur();
+      Keyboard.dismiss;
       setTimePickerDisplayed(false);
     }
   }, [isEditing]);
@@ -168,6 +173,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
         flex: 1,
         alignItems: 'center',
       }}>
+      {/* Avatar */}
       <View
         style={{
           height: theme.sizes[40],
@@ -175,25 +181,37 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           backgroundColor: theme.colors.tintedGrey[300],
           borderRadius: theme.sizes[20],
           marginTop: theme.sizes[8],
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
-        {photo.length > 0 && (
+        {photo.length > 0 ? (
           <Image
             source={{
               uri: photo,
             }}
             style={{
-              flex: 1,
+              width: '100%',
+              height: '100%',
               borderRadius: theme.sizes[20],
             }}
           />
+        ) : (
+          <SvgXml
+            xml={`<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.tintedGrey[700]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.tintedGrey[700]}/></svg>`}
+            width="80%"
+            height="80%"
+          />
         )}
       </View>
+      {/* Add Photo */}
       <Pressable
         style={{
           marginTop: theme.sizes[3],
           marginBottom: theme.sizes[6],
         }}
         onPress={async () => {
+          // dismiss opened keybord or time picker
+          setIsEditing(false);
           const result = await pickImage();
           if (!result.canceled) {
             setPhoto(result.assets[0].uri);
@@ -212,6 +230,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           width: '100%',
           paddingHorizontal: theme.sizes['3.5'],
         }}>
+        {/* First name */}
         <View
           style={{
             paddingVertical: theme.sizes[4],
@@ -220,38 +239,82 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             paddingHorizontal: theme.sizes[5],
           }}>
           <TextInput
+            placeholderTextColor={theme.colors.tintedGrey[500]}
             ref={firstNameInputRef}
             onFocus={() => {
               setIsEditing(true);
+              setTimePickerDisplayed(false);
+            }}
+            onBlur={() => {
+              setIsEditing(false);
             }}
             value={firstName}
             onChangeText={setFirstName}
             placeholder="First Name"
             keyboardType="default"
+            style={[
+              generalStyles(theme).text,
+              {
+                fontSize: 14,
+              },
+            ]}
           />
           <Divider style={{marginVertical: theme.sizes[3]}} />
+          {/* Last name */}
           <TextInput
+            placeholderTextColor={theme.colors.tintedGrey[500]}
             ref={lastNameInputRef}
             onFocus={() => {
               setIsEditing(true);
+              setTimePickerDisplayed(false);
+            }}
+            onBlur={() => {
+              setIsEditing(false);
             }}
             value={lastName}
             onChangeText={setLastName}
             placeholder="Last Name"
             keyboardType="default"
+            style={[
+              generalStyles(theme).text,
+              {
+                fontSize: 14,
+              },
+            ]}
           />
           <Divider style={{marginVertical: theme.sizes[3]}} />
-          <Pressable
-            onPress={() => {
-              firstNameInputRef.current?.blur();
-              lastNameInputRef.current?.blur();
-              setTimePickerDisplayed(true);
-              setIsEditing(true);
-            }}>
-            <Text>{birthday?.toLocaleDateString() || 'Not Set'}</Text>
-          </Pressable>
+          {/* birthday */}
+          <View style={[generalStyles(theme).row]}>
+            <Text
+              style={[
+                generalStyles(theme).text,
+                {
+                  fontSize: 14,
+                },
+              ]}>
+              Birthday
+            </Text>
+            <Pressable
+              onPress={() => {
+                // dismiss opened keyboard
+                Keyboard.dismiss();
+                setTimePickerDisplayed(true);
+                setIsEditing(true);
+              }}>
+              <Text
+                style={[
+                  generalStyles(theme).text,
+                  {
+                    fontSize: 14,
+                  },
+                ]}>
+                {birthday?.toLocaleDateString() || 'Not Set'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </View>
+      {/* birthday picker */}
       {timePickerDisplayed && (
         <View
           style={{

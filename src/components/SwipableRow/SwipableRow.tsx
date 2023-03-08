@@ -7,6 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
+import {generalStyles} from 'screens/root-stack/Authentication/authStyles';
 import {Divider} from 'components';
 import {Recipient, recipientRemoved} from 'store/slices/recipientsSlice';
 import {
@@ -105,6 +106,7 @@ const SwipeableRow = ({
             marginTop: 20,
             marginBottom: 28,
           }}>
+          {/* avatar */}
           <View
             style={{
               height: 48,
@@ -127,13 +129,19 @@ const SwipeableRow = ({
             style={{
               marginLeft: 16,
             }}>
+            {/* name */}
             <Text
-              style={{
-                fontWeight: theme.fontWeights.semibold,
-                textTransform: 'capitalize',
-              }}>
+              style={[
+                generalStyles(theme).text,
+                {
+                  fontSize: 14,
+                  fontWeight: theme.fontWeights.semibold,
+                  textTransform: 'capitalize',
+                },
+              ]}>
               {`${recipient.first_name} ${recipient.last_name}`}
             </Text>
+            {/* location */}
             <View
               style={{
                 ...styles.row_centered_flex_box,
@@ -144,17 +152,23 @@ const SwipeableRow = ({
                 color={theme.colors.primary[400]}
               />
               <Text
-                style={{
-                  fontWeight: theme.fontWeights.semibold,
-                  fontSize: theme.fontSizes.xs,
-                }}>
+                style={[
+                  generalStyles(theme).text,
+                  {
+                    fontWeight: theme.fontWeights.semibold,
+                    fontSize: 12,
+                  },
+                ]}>
                 at
               </Text>
               <Text
-                style={{
-                  fontSize: theme.fontSizes.xs,
-                  marginLeft: theme.sizes['1.5'],
-                }}>
+                style={[
+                  generalStyles(theme).text,
+                  {
+                    fontSize: 12,
+                    marginLeft: theme.sizes['1.5'],
+                  },
+                ]}>
                 {recipient.location}
               </Text>
             </View>

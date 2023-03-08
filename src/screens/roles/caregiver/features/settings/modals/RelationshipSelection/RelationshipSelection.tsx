@@ -9,6 +9,7 @@ import {RelationshipSelectionModalProps} from 'screens/navigation-types';
 import {SafeAreaContainer, Divider} from 'components';
 import {ThemeContext} from 'contexts';
 import {RelationshipContext} from '../../SettingsStackNavigator/SettingsStackNavigator';
+import {generalStyles} from 'screens/root-stack/Authentication/authStyles';
 
 const keys = Object.keys(Relationship);
 
@@ -22,7 +23,7 @@ const RelationshipSelection = ({
   // set header title
   useEffect(() => {
     navigation.setOptions({
-      title: 'Select Relationship',
+      headerTitle: 'Select Relationship',
     });
   });
 
@@ -42,7 +43,9 @@ const RelationshipSelection = ({
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-          <Text>{relationshipType}</Text>
+          <Text style={[generalStyles(theme).text, {fontSize: 14}]}>
+            {relationshipType}
+          </Text>
           {relationshipType == relationship && (
             <FeatherIcon name="check" color={theme.colors.primary[400]} />
           )}

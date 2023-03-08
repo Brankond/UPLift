@@ -41,6 +41,7 @@ import {
 import {ThemeContext} from 'contexts';
 import {AppDispatch} from 'store';
 import pickImage from 'utils/pickImage';
+import {generalStyles} from 'screens/root-stack/Authentication/authStyles';
 
 // context
 type RecipientProfileContextType = {
@@ -134,14 +135,16 @@ const Name = memo(
 
     return (
       <Text
-        style={{
-          fontFamily: theme.fonts.main,
-          fontSize: theme.sizes[6],
-          fontWeight: theme.fontWeights.bold,
-          textAlign: 'center',
-          textTransform: 'capitalize',
-          marginBottom: theme.sizes[5],
-        }}>
+        style={[
+          generalStyles(theme).text,
+          {
+            fontSize: theme.sizes[6],
+            fontWeight: theme.fontWeights.bold,
+            textAlign: 'center',
+            textTransform: 'capitalize',
+            marginBottom: theme.sizes[5],
+          },
+        ]}>
         {`${firstName} ${lastName}`}
       </Text>
     );
@@ -271,13 +274,15 @@ const SectionHeader = memo(
                     }, 150);
                   }}>
                   <Animated.Text
-                    style={{
-                      fontFamily: theme.fonts.main,
-                      fontSize: theme.sizes[3],
-                      fontWeight: theme.fontWeights.medium,
-                      color: theme.colors.primary[400],
-                      opacity: nonEditingUiAnimatedVal,
-                    }}>
+                    style={[
+                      generalStyles(theme).text,
+                      {
+                        fontSize: theme.sizes[3],
+                        fontWeight: theme.fontWeights.medium,
+                        color: theme.colors.primary[400],
+                        opacity: nonEditingUiAnimatedVal,
+                      },
+                    ]}>
                     Select
                   </Animated.Text>
                 </Pressable>
@@ -370,10 +375,13 @@ const SectionHeader = memo(
             marginBottom: theme.sizes[5],
           }}>
           <Text
-            style={{
-              textTransform: 'capitalize',
-              fontSize: theme.sizes[3],
-            }}>
+            style={[
+              generalStyles(theme).text,
+              {
+                textTransform: 'capitalize',
+                fontSize: theme.sizes[3],
+              },
+            ]}>
             {type === SectionType.Contacts
               ? 'Emergency Contacts'
               : 'Information'}
@@ -419,14 +427,15 @@ const InformationCard = memo(
         alignItems: 'center',
       },
       textInput: {
+        fontFamily: theme.fonts.main,
         borderWidth: 0,
         padding: 0,
         margin: 0,
         textAlign: 'right',
-        fontSize: theme.sizes['3.5'],
+        fontSize: 14,
       },
       fieldLabel: {
-        fontSize: theme.sizes['3.5'],
+        fontSize: 14,
       },
     });
 
@@ -440,7 +449,9 @@ const InformationCard = memo(
           backgroundColor: theme.colors.tintedGrey[100],
         }}>
         <View style={[styles.horizontalRow]}>
-          <Text style={[styles.fieldLabel]}>First Name</Text>
+          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+            First Name
+          </Text>
           <TextInput
             placeholderTextColor={theme.colors.tintedGrey[600]}
             placeholder="Not Set"
@@ -451,7 +462,7 @@ const InformationCard = memo(
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
                   (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
-                  'black',
+                  theme.colors.darkText,
               },
             ]}
             value={firstName}
@@ -462,7 +473,9 @@ const InformationCard = memo(
           style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
         />
         <View style={styles.horizontalRow}>
-          <Text style={[styles.fieldLabel]}>Last Name</Text>
+          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+            Last Name
+          </Text>
           <TextInput
             placeholderTextColor={theme.colors.tintedGrey[600]}
             placeholder="Not Set"
@@ -473,7 +486,7 @@ const InformationCard = memo(
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
                   (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
-                  'black',
+                  theme.colors.darkText,
               },
             ]}
             value={lastName}
@@ -484,7 +497,9 @@ const InformationCard = memo(
           style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
         />
         <View style={styles.horizontalRow}>
-          <Text style={[styles.fieldLabel]}>Birthday</Text>
+          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+            Birthday
+          </Text>
           <Pressable
             onPress={() => {
               setDatePickerDisplayed(true);
@@ -492,10 +507,11 @@ const InformationCard = memo(
             disabled={!isInformationEditing}>
             <Text
               style={{
+                fontFamily: theme.fonts.main,
                 color:
                   (isInformationEditing && theme.colors.primary[400]) ||
                   (!birthday && theme.colors.tintedGrey[600]) ||
-                  'black',
+                  theme.colors.darkText,
               }}>
               {birthday ? birthday.toLocaleDateString() : 'Not Set'}
             </Text>
@@ -567,7 +583,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
           fontFamily: theme.fonts.main,
           fontSize: theme.sizes[3],
           marginBottom: theme.sizes[4],
-          color: theme.colors.tintedGrey[500],
+          color: theme.colors.tintedGrey[600],
         }}>
         {contact.relationship}
       </Text>
@@ -579,9 +595,13 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
           alignItems: 'center',
         }}>
         <Text
-          style={{
-            textTransform: 'capitalize',
-          }}>
+          style={[
+            generalStyles(theme).text,
+            {
+              fontSize: 14,
+              textTransform: 'capitalize',
+            },
+          ]}>
           {`${contact.first_name} ${contact.last_name}`}
         </Text>
         {!isContactsEditing && (
@@ -600,7 +620,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
             <SimpleLineIcon
               name="arrow-right"
               size={10}
-              color={theme.colors.tintedGrey[500]}
+              color={theme.colors.tintedGrey[600]}
             />
           </Pressable>
         )}
@@ -609,7 +629,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
         <>
           <Text
             style={{
-              color: theme.colors.tintedGrey[500],
+              color: theme.colors.tintedGrey[600],
               fontFamily: theme.fonts.main,
               fontSize: theme.sizes[3],
               marginBottom: theme.sizes[2],
@@ -622,7 +642,7 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
               <Text
                 style={{
                   marginTop: theme.sizes[2],
-                  color: theme.colors.tintedGrey[500],
+                  color: theme.colors.tintedGrey[600],
                   fontFamily: theme.fonts.main,
                   fontSize: theme.sizes[3],
                   marginBottom: theme.sizes[2],
@@ -656,8 +676,8 @@ const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
   const {isEditing: isContactsEditing} = useContext(ContactSectionContext);
 
   const contactItems = contacts.map((contact, index) => (
-    <>
-      <ContactItem contact={contact} key={contact.id} />
+    <View key={index}>
+      <ContactItem contact={contact} />
       {index !== contacts.length - 1 && (
         <Divider
           style={{
@@ -667,7 +687,7 @@ const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
           }}
         />
       )}
-    </>
+    </View>
   ));
 
   return (

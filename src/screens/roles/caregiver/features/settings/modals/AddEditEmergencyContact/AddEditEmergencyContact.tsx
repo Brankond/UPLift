@@ -13,7 +13,7 @@ import {
   Text,
   View,
   TextInput,
-  FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Keyboard,
 } from 'react-native';
@@ -29,6 +29,7 @@ import {AddContactModalProps} from 'screens/navigation-types';
 import {SaveButton, Divider} from 'components';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {selectContactById} from 'store/slices/emergencyContactsSlice';
+import {generalStyles} from 'screens/root-stack/Authentication/authStyles';
 import {
   contactAdded,
   contactUpdated,
@@ -87,7 +88,8 @@ const ContactMethodEntryItem = memo(
         : [...contact.contactNumbers]
       : undefined;
 
-    const {setIsEditing: setContextIsEditing} = useContext(EditingStateContext);
+    const {isEditing: contextIsEditing, setIsEditing: setContextIsEditing} =
+      useContext(EditingStateContext);
     const [entryValue, setEntryValue] = useState<string>(value);
 
     useEffect(() => {
@@ -117,6 +119,9 @@ const ContactMethodEntryItem = memo(
               justifyContent: 'center',
             }}
             onPress={() => {
+              // remove current item
+              // set editing state to be false if it is true
+              if (contextIsEditing) setContextIsEditing(false);
               contactMethodEntries.splice(index, 1);
               setContactMethodEntries(contactMethodEntries);
             }}>
@@ -134,10 +139,14 @@ const ContactMethodEntryItem = memo(
             keyboardType={
               method === ContactMethod.Email ? 'email-address' : 'phone-pad'
             }
-            style={{
-              flex: 1,
-              marginLeft: theme.sizes[5],
-            }}
+            style={[
+              generalStyles(theme).text,
+              {fontSize: 14},
+              {
+                flex: 1,
+                marginLeft: theme.sizes[5],
+              },
+            ]}
             placeholder={
               method === ContactMethod.Email ? 'Enter Email' : 'Enter Number'
             }
@@ -150,11 +159,12 @@ const ContactMethodEntryItem = memo(
                 entryValue,
               );
               setContactMethodEntries(contactMethodEntries);
+            }}
+            onBlur={() => {
               setContextIsEditing(false);
             }}
           />
         </View>
-        <Divider style={{marginVertical: 0}} />
       </>
     ) : (
       <></>
@@ -163,6 +173,7 @@ const ContactMethodEntryItem = memo(
 );
 
 const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
+  // context values
   const contact = useContext(ContactContext);
 
   const setContactMethodEntries = contact
@@ -177,64 +188,70 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
     : undefined;
 
   const {theme} = useContext(ThemeContext);
+
+  const entryList = contactMethodEntries?.map((entry, index) => (
+    <>
+      <ContactMethodEntryItem
+        method={method}
+        value={entry}
+        index={index}
+        key={index}
+      />
+      <Divider style={{marginVertical: 0}} />
+    </>
+  ));
+
   return contactMethodEntries && setContactMethodEntries ? (
-    <FlatList
-      scrollEnabled={false}
-      contentContainerStyle={{
-        backgroundColor: theme.colors.light[50],
-        marginTop: theme.sizes[8],
-        borderRadius: theme.sizes[4],
-      }}
-      data={contactMethodEntries}
-      renderItem={({item, index}) => (
-        <ContactMethodEntryItem
-          method={method}
-          value={item}
-          index={index}
-          key={index}
-        />
-      )}
-      ItemSeparatorComponent={_ => <Divider style={{marginVertical: 0}} />}
-      ListFooterComponent={_ => (
-        <>
-          <View
-            style={{
-              paddingHorizontal: theme.sizes[5],
-              paddingVertical: theme.sizes[4],
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Pressable
-              style={{
-                width: theme.sizes[4],
-                height: theme.sizes[4],
-                backgroundColor: theme.colors.primary[400],
-                borderRadius: theme.sizes[2],
-                alignSelf: 'center',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onPress={() => {
-                setContactMethodEntries([...contactMethodEntries, '']);
-              }}>
-              <FeatherIcon
-                name="plus"
-                color={theme.colors.light[50]}
-                size={theme.sizes[3]}
-              />
-            </Pressable>
-            <Text
-              style={{
-                flex: 1,
-                marginLeft: theme.sizes[5],
-              }}>
-              {method === ContactMethod.Email ? 'Add Email' : 'Add Number'}
-            </Text>
-          </View>
-        </>
-      )}
-    />
+    <View
+      style={[
+        {
+          backgroundColor: theme.colors.light[50],
+          marginTop: theme.sizes[8],
+          borderRadius: theme.sizes[4],
+        },
+      ]}>
+      {entryList}
+      {/* Add entry row */}
+      <View
+        style={{
+          paddingHorizontal: theme.sizes[5],
+          paddingVertical: theme.sizes[4],
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+        <Pressable
+          style={{
+            width: theme.sizes[4],
+            height: theme.sizes[4],
+            backgroundColor: theme.colors.primary[400],
+            borderRadius: theme.sizes[2],
+            alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onPress={() => {
+            setContactMethodEntries([...contactMethodEntries, '']);
+          }}>
+          <FeatherIcon
+            name="plus"
+            color={theme.colors.light[50]}
+            size={theme.sizes[3]}
+          />
+        </Pressable>
+        <Text
+          style={[
+            generalStyles(theme).text,
+            {fontSize: 14},
+            {
+              flex: 1,
+              marginLeft: theme.sizes[5],
+            },
+          ]}>
+          {method === ContactMethod.Email ? 'Add Email' : 'Add Number'}
+        </Text>
+      </View>
+    </View>
   ) : (
     <></>
   );
@@ -270,11 +287,13 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
   const lastNameInputRef = useRef<TextInput>(null);
 
   // effects
+  // initialise proper context
   useEffect(() => {
     if (!setContextRelationship) return;
     setContextRelationship(relationship);
   }, []);
 
+  // update relationship upon context changes
   useEffect(() => {
     setRelationship(contextRelationship);
   }, [contextRelationship]);
@@ -370,103 +389,119 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
             emails,
             setEmails,
           }}>
-          {/* names */}
-          <View
-            style={{
-              marginTop: theme.sizes[8],
-              paddingVertical: theme.sizes[4],
-              borderRadius: theme.sizes[4],
-              backgroundColor: theme.colors.light[50],
-              paddingHorizontal: theme.sizes[5],
-            }}>
-            <TextInput
-              placeholderTextColor={theme.colors.tintedGrey[500]}
-              ref={firstNameInputRef}
-              onFocus={() => {
-                setIsEditing(true);
-              }}
-              value={firstName}
-              onChangeText={setFirstName}
-              onEndEditing={() => {
-                setIsEditing(false);
-              }}
-              placeholder="First Name"
-              keyboardType="default"
-            />
-            <Divider style={{marginVertical: theme.sizes[3]}} />
-            <TextInput
-              placeholderTextColor={theme.colors.tintedGrey[500]}
-              ref={lastNameInputRef}
-              onFocus={() => {
-                setIsEditing(true);
-              }}
-              value={lastName}
-              onChangeText={setLastName}
-              onEndEditing={() => {
-                setIsEditing(false);
-              }}
-              placeholder="Last Name"
-              keyboardType="default"
-            />
-          </View>
-          {/* relationship */}
-          <View
-            style={{
-              marginTop: theme.sizes[8],
-              paddingHorizontal: theme.sizes[5],
-              paddingVertical: theme.sizes[4],
-              borderRadius: theme.sizes[4],
-              backgroundColor: theme.colors.light[50],
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}>
-            <Text>Relationship</Text>
-            <Pressable
-              onPress={() => {
-                navigation.navigate('Select Relationship');
-              }}
+          <ScrollView>
+            {/* names */}
+            <View
               style={{
+                marginTop: theme.sizes[8],
+                paddingVertical: theme.sizes[4],
+                borderRadius: theme.sizes[4],
+                backgroundColor: theme.colors.light[50],
+                paddingHorizontal: theme.sizes[5],
+              }}>
+              <TextInput
+                style={[
+                  generalStyles(theme).text,
+                  {
+                    fontSize: 14,
+                  },
+                ]}
+                placeholderTextColor={theme.colors.tintedGrey[500]}
+                ref={firstNameInputRef}
+                onFocus={() => {
+                  setIsEditing(true);
+                }}
+                value={firstName}
+                onChangeText={setFirstName}
+                onEndEditing={() => {
+                  setIsEditing(false);
+                }}
+                placeholder="First Name"
+                keyboardType="default"
+              />
+              <Divider style={{marginVertical: theme.sizes[3]}} />
+              <TextInput
+                style={[
+                  generalStyles(theme).text,
+                  {
+                    fontSize: 14,
+                  },
+                ]}
+                placeholderTextColor={theme.colors.tintedGrey[500]}
+                ref={lastNameInputRef}
+                onFocus={() => {
+                  setIsEditing(true);
+                }}
+                value={lastName}
+                onChangeText={setLastName}
+                onEndEditing={() => {
+                  setIsEditing(false);
+                }}
+                placeholder="Last Name"
+                keyboardType="default"
+              />
+            </View>
+            {/* relationship */}
+            <View
+              style={{
+                marginTop: theme.sizes[8],
+                paddingHorizontal: theme.sizes[5],
+                paddingVertical: theme.sizes[4],
+                borderRadius: theme.sizes[4],
+                backgroundColor: theme.colors.light[50],
                 flexDirection: 'row',
+                justifyContent: 'space-between',
                 alignItems: 'center',
               }}>
-              <Text
-                style={{
-                  fontFamily: theme.fonts.main,
-                  color: theme.colors.tintedGrey[600],
-                  marginRight: theme.sizes[1],
-                }}>
-                {relationship}
+              <Text style={[generalStyles(theme).text, {fontSize: 14}]}>
+                Relationship
               </Text>
-              <SimpleLineIcon
-                name="arrow-right"
-                size={11}
-                color={theme.colors.tintedGrey[600]}
-              />
-            </Pressable>
-          </View>
-          <Text
-            style={{
-              marginTop: theme.sizes[2],
-              paddingHorizontal: theme.sizes[5],
-              color: theme.colors.tintedGrey[600],
-            }}>
-            Relationship between the contact and the recipient is required
-          </Text>
-          {/* phone numbers */}
+              <Pressable
+                onPress={() => {
+                  navigation.navigate('Select Relationship');
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  style={{
+                    fontFamily: theme.fonts.main,
+                    color: theme.colors.tintedGrey[600],
+                    marginRight: theme.sizes[1],
+                  }}>
+                  {relationship}
+                </Text>
+                <SimpleLineIcon
+                  name="arrow-right"
+                  size={11}
+                  color={theme.colors.tintedGrey[600]}
+                />
+              </Pressable>
+            </View>
+            <Text
+              style={{
+                marginTop: theme.sizes[2],
+                paddingHorizontal: theme.sizes[5],
+                color: theme.colors.tintedGrey[600],
+              }}>
+              Relationship between the contact and the recipient is required
+            </Text>
+            {/* phone numbers */}
 
-          <ContactMethodEntryList method={ContactMethod.Phone} />
-          <Text
-            style={{
-              marginTop: theme.sizes[2],
-              paddingHorizontal: theme.sizes[5],
-              color: theme.colors.tintedGrey[600],
-            }}>
-            At least 1 contact number needs to be added
-          </Text>
+            <ContactMethodEntryList method={ContactMethod.Phone} />
+            <Text
+              style={{
+                marginTop: theme.sizes[2],
+                paddingHorizontal: theme.sizes[5],
+                color: theme.colors.tintedGrey[600],
+              }}>
+              At least 1 contact number needs to be added
+            </Text>
 
-          {/* emails */}
-          <ContactMethodEntryList method={ContactMethod.Email} />
+            {/* emails */}
+            <ContactMethodEntryList method={ContactMethod.Email} />
+          </ScrollView>
         </ContactContext.Provider>
       </EditingStateContext.Provider>
     </KeyboardAvoidingView>

@@ -222,7 +222,7 @@ const EmailLoginForm = memo(() => {
         <ActionButton
           text="Login"
           onPress={() => {
-            navigation.navigate('Caregiver');
+            navigation.navigate('Role Selection');
           }}
         />
       </View>
@@ -408,7 +408,7 @@ const OTPLoginForm = memo(() => {
           appearance={Appearance.Stuffed}
           text={'Login'}
           onPress={() => {
-            // login()
+            navigation.navigate('Role Selection');
           }}
         />
       )}

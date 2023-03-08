@@ -20,6 +20,7 @@ const Header = ({title, searchBarShown = true}: HeaderProps) => {
   const styles = StyleSheet.create({
     /** header container */
     heading_text: {
+      fontFamily: theme.fonts.main,
       fontWeight: theme.fontWeights.bold,
       fontSize: theme.fontSizes['3.5xl'],
       color: theme.colors.primary[400],
@@ -50,7 +51,12 @@ const Header = ({title, searchBarShown = true}: HeaderProps) => {
             color={theme.colors.tintedGrey[800]}
           />
           <TextInput
-            style={styles.search_bar}
+            style={[
+              styles.search_bar,
+              {
+                fontFamily: theme.fonts.main,
+              },
+            ]}
             placeholder="Search"
             placeholderTextColor={theme.colors.tintedGrey[500]}
           />
