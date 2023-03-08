@@ -21,11 +21,11 @@ import {Platform} from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 
 // internal dependencies
-import {Login} from 'screens/root-stack/Authentication/Login';
-import {Signup} from 'screens/root-stack/Authentication/Signup';
-import {RoleSelection} from 'screens/root-stack/RoleSelection';
-import {CaregiverStackNavigator} from 'screens/root-stack/CaregiverStackNavigator';
-import {RootStackParamList} from 'screens/navigation-types';
+import {Login} from 'features/global/Authentication/Login';
+import {Signup} from 'features/global/Authentication/Signup';
+import {RoleSelection} from 'features/global/RoleSelection';
+import {CaregiverStackNavigator} from 'navigators/CaregiverStackNavigator';
+import {RootStackParamList} from 'navigators/navigation-types';
 import {ThemeContext, theme} from 'contexts';
 import store from 'store';
 

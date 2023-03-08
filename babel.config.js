@@ -14,6 +14,8 @@ module.exports = {
           utils: './src/utils',
           services: './src/services',
           environment: './src/environment',
+          navigators: './src/navigators',
+          features: './src/features',
         },
         extensions: ['.ios.js', '.android.js', '.js', '.json', '.ts'],
       },
