@@ -12,6 +12,7 @@ import {SwipeableRow} from './SwipableRow';
 import {ActionButton} from './ActionButton';
 import {TextDivider} from './TextDivider';
 import {TextField} from './TextField/TextField';
+import {SearchBar} from './SearchBar';
 
 export {
   ActionButton,
@@ -28,4 +29,5 @@ export {
   TickSelection,
   PlayButton,
   SwipeableRow,
+  SearchBar,
 };

@@ -63,6 +63,10 @@ export const typography = (theme: ThemeType) => {
 
 export const layout = (theme: ThemeType) => {
   return StyleSheet.create({
+    rowAlignCentered: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     rowSpaceBetween: {
       flexDirection: 'row',
       justifyContent: 'space-between',
