@@ -6,8 +6,12 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import {useNavigation} from '@react-navigation/native';
 
 // internal dependencies
-import {ActionButton} from '../components/ActionButton';
-import {TextField, FieldType} from '../components/TextField';
+import {ActionButton} from '../../../../components/ActionButton/ActionButton';
+import {
+  TextField,
+  FieldType,
+  InputAppearance,
+} from '../../../../components/TextField/TextField';
 import {SignupProps} from 'navigators/navigation-types';
 import {ThemeContext} from 'contexts';
 import {generalStyles, fieldStyles} from '../authStyles';
@@ -40,18 +44,8 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
     <>
       {/* Username */}
       <View style={[{marginBottom: 24}]}>
-        <Text
-          style={[
-            generalStyles(theme).text,
-            {
-              marginBottom: 8,
-            },
-            fieldStyles(theme, focusedField === FieldType.Username).fieldText,
-          ]}>
-          Username
-        </Text>
         <TextField
-          placeHolder="Enter Username"
+          placeHolder="Username"
           value={username}
           setValue={setUsername}
           fieldType={FieldType.Username}
@@ -66,31 +60,17 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
                   : theme.colors.tintedGrey[700]
               }
               size={18}
-              style={[
-                {
-                  marginHorizontal: 8,
-                },
-              ]}
             />
           }
           autoFocus={true}
+          appearance={InputAppearance.Round}
         />
       </View>
       {/* email */}
       {setEmail && (
         <View style={[{marginBottom: 24}]}>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                marginBottom: 8,
-              },
-              fieldStyles(theme, focusedField === FieldType.Email).fieldText,
-            ]}>
-            Email
-          </Text>
           <TextField
-            placeHolder="Enter Email"
+            placeHolder="Email"
             value={email}
             setValue={setEmail}
             fieldType={FieldType.Email}
@@ -105,33 +85,17 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
                     : theme.colors.tintedGrey[700]
                 }
                 size={18}
-                style={[
-                  {
-                    marginHorizontal: 8,
-                  },
-                ]}
               />
             }
+            appearance={InputAppearance.Round}
           />
         </View>
       )}
 
       {/* password */}
       <View style={[{marginBottom: 24}]}>
-        <Pressable>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                marginBottom: 8,
-              },
-              fieldStyles(theme, focusedField === FieldType.Password).fieldText,
-            ]}>
-            Password
-          </Text>
-        </Pressable>
         <TextField
-          placeHolder="Enter Password"
+          placeHolder="Password"
           value={password}
           setValue={setPassword}
           fieldType={FieldType.Password}
@@ -148,14 +112,10 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
                     : theme.colors.tintedGrey[700]
                 }
                 size={18}
-                style={[
-                  {
-                    marginHorizontal: 8,
-                  },
-                ]}
               />
             </Pressable>
           }
+          appearance={InputAppearance.Round}
         />
         <Text
           style={[
@@ -172,19 +132,6 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
       </View>
       {/* confirm password */}
       <View style={[{marginBottom: 32}]}>
-        <Pressable>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                marginBottom: 8,
-              },
-              fieldStyles(theme, focusedField === FieldType.ConfirmPassword)
-                .fieldText,
-            ]}>
-            Confirm Password
-          </Text>
-        </Pressable>
         <TextField
           placeHolder="Confirm Password"
           value={confirmPassword}
@@ -203,55 +150,22 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
                     : theme.colors.tintedGrey[700]
                 }
                 size={18}
-                style={[
-                  {
-                    marginHorizontal: 8,
-                  },
-                ]}
               />
             </Pressable>
           }
+          appearance={InputAppearance.Round}
         />
       </View>
-      {/* signup button */}
-      <View
-        style={[
-          {
-            marginBottom: 16,
-          },
-        ]}>
-        <ActionButton
-          text="Sign Up"
-          onPress={() => {
-            onPress();
-          }}
-        />
-      </View>
-      {/* redirect to login button */}
-      <View
-        style={[
-          generalStyles(theme).row,
-          {
-            justifyContent: 'center',
-            marginBottom: 48,
-          },
-        ]}>
-        <Text
+      <View style={[{flex: 1, justifyContent: 'flex-end'}]}>
+        {/* redirect to login button */}
+        <View
           style={[
-            generalStyles(theme).text,
+            generalStyles(theme).row,
             {
-              fontSize: 14,
-              fontWeight: theme.fontWeights.semibold,
-              marginRight: 8,
+              justifyContent: 'center',
+              marginBottom: 16,
             },
           ]}>
-          Already have an Account?
-        </Text>
-        <Pressable
-          onPress={() => {
-            // navigate to signUp page
-            navigation.navigate('Login');
-          }}>
           <Text
             style={[
               generalStyles(theme).text,
@@ -259,21 +173,43 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
                 fontSize: 14,
                 fontWeight: theme.fontWeights.semibold,
                 marginRight: 8,
-                textDecorationLine: 'underline',
               },
             ]}>
-            Login
+            Already have an Account?
           </Text>
-        </Pressable>
-      </View>
-      {/* external singup */}
-      <View
-        style={[
-          {
-            flex: 1,
-          },
-        ]}>
-        <ExternalLogin />
+          <Pressable
+            onPress={() => {
+              // navigate to signUp page
+              navigation.navigate('Login');
+            }}>
+            <Text
+              style={[
+                generalStyles(theme).text,
+                {
+                  fontSize: 14,
+                  fontWeight: theme.fontWeights.semibold,
+                  marginRight: 8,
+                  textDecorationLine: 'underline',
+                },
+              ]}>
+              Login
+            </Text>
+          </Pressable>
+        </View>
+        {/* signup button */}
+        <View
+          style={[
+            {
+              marginBottom: 16,
+            },
+          ]}>
+          <ActionButton
+            text="Sign Up"
+            onPress={() => {
+              onPress();
+            }}
+          />
+        </View>
       </View>
     </>
   );
@@ -331,19 +267,12 @@ const EmailVerification = memo(({onPress}: {onPress: () => void}) => {
               |
             </Text>
             <Pressable>
-              <Text
-                style={[
-                  generalStyles(theme).text,
-                  {
-                    marginRight: 8,
-                  },
-                ]}>
-                Resend
-              </Text>
+              <Text style={[generalStyles(theme).text]}>Resend</Text>
             </Pressable>
           </View>
         }
         autoFocus={true}
+        appearance={InputAppearance.Round}
       />
       {/* action button */}
       <View
@@ -353,7 +282,12 @@ const EmailVerification = memo(({onPress}: {onPress: () => void}) => {
             justifyContent: 'flex-end',
           },
         ]}>
-        <ActionButton text="Verify Account" />
+        <ActionButton
+          text="Verify Account"
+          onPress={() => {
+            onPress();
+          }}
+        />
       </View>
     </>
   );

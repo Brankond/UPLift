@@ -29,7 +29,7 @@ import {AddContactModalProps} from 'navigators/navigation-types';
 import {SaveButton, Divider} from 'components';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {selectContactById} from 'store/slices/emergencyContactsSlice';
-import {generalStyles} from 'features/global/Authentication/authStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 import {
   contactAdded,
   contactUpdated,
@@ -190,7 +190,7 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
   const {theme} = useContext(ThemeContext);
 
   const entryList = contactMethodEntries?.map((entry, index) => (
-    <>
+    <View key={index}>
       <ContactMethodEntryItem
         method={method}
         value={entry}
@@ -198,7 +198,7 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
         key={index}
       />
       <Divider style={{marginVertical: 0}} />
-    </>
+    </View>
   ));
 
   return contactMethodEntries && setContactMethodEntries ? (

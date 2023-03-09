@@ -9,7 +9,7 @@ import {RelationshipSelectionModalProps} from 'navigators/navigation-types';
 import {SafeAreaContainer, Divider} from 'components';
 import {ThemeContext} from 'contexts';
 import {RelationshipContext} from '../../../../../navigators/SettingsStackNavigator/SettingsStackNavigator';
-import {generalStyles} from 'features/global/Authentication/authStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 
 const keys = Object.keys(Relationship);
 

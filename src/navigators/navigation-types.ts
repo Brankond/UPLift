@@ -19,7 +19,9 @@ export type CaregiverStackParamList = {
   Settings: NavigatorScreenParams<SettingsStackParamList>;
 };
 
-export type RecipientStackParamList = {};
+export type RecipientStackParamList = {
+  'Recipient Verification': undefined;
+};
 
 export type CaregiverTabParamList = {
   Home: undefined;
@@ -79,9 +81,12 @@ export type SettingsStackParamList = {
 };
 
 // Screen Props
+
+// authentication
 export type LoginProps = StackScreenProps<RootStackParamList, 'Login'>;
 export type SignupProps = StackScreenProps<RootStackParamList, 'Signup'>;
 
+// root stack
 export type RoleSelectionProps = StackScreenProps<
   RootStackParamList,
   'Role Selection'
@@ -94,12 +99,18 @@ export type RecipientStackNavigatorProps = StackScreenProps<
   RootStackParamList,
   'Recipient'
 >;
-
 export type CaregiverBottomTabNavigatorProps = StackScreenProps<
   CaregiverStackParamList,
   'Caregiver Home'
 >;
 
+// recipient verification
+export type RecipientVerificationProps = StackScreenProps<
+  RecipientStackParamList,
+  'Recipient Verification'
+>;
+
+// image to speech
 export type ImageToSpeechStackNavigatorProps = StackScreenProps<
   CaregiverStackParamList,
   'Image to Speech'
@@ -127,12 +138,14 @@ export type AddSetModalProps = StackScreenProps<
   'Add Set'
 >;
 
+// forum
 export type ForumStackNavigatorProps = StackScreenProps<
   CaregiverStackParamList,
   'Forum'
 >;
 export type HomeProps = StackScreenProps<ForumStackParamList, 'Home'>;
 
+// settings
 export type SettingsStackNavigatorProps = StackScreenProps<
   CaregiverStackParamList,
   'Settings'

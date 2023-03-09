@@ -9,8 +9,14 @@ import {HeaderEditToolBar} from './HeaderEditToolBar';
 import {TickSelection} from './TickSelection';
 import {PlayButton} from './PlayButton';
 import {SwipeableRow} from './SwipableRow';
+import {ActionButton} from './ActionButton';
+import {TextDivider} from './TextDivider';
+import {TextField} from './TextField/TextField';
 
 export {
+  ActionButton,
+  TextDivider,
+  TextField,
   Button,
   Divider,
   Header,

@@ -5,7 +5,7 @@ import {ViewProps} from 'react-native';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
-import {generalStyles} from '../authStyles';
+import {generalStyles} from '../../features/global/authentication/authStyles';
 
 export enum Appearance {
   Stuffed,

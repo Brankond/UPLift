@@ -6,7 +6,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
-import {TextDivider} from './TextDivider';
+import {TextDivider} from '../../../../components/TextDivider/TextDivider';
 
 export const ExternalLogin = memo(() => {
   // context values

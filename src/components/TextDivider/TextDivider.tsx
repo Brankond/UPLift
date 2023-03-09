@@ -4,7 +4,7 @@ import {View, Text} from 'native-base';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
-import {generalStyles} from '../authStyles';
+import {generalStyles} from '../../features/global/authentication/authStyles';
 
 export const TextDivider = memo(
   ({text, width = '70%'}: {text: string; width?: string}) => {

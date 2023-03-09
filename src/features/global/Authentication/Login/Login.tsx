@@ -21,9 +21,16 @@ import {useNavigation} from '@react-navigation/native';
 import {LoginProps} from 'navigators/navigation-types';
 import {ThemeContext} from 'contexts';
 import {generalStyles, fieldStyles} from '../authStyles';
-import {ActionButton, Appearance} from '../components/ActionButton';
-import {TextField, FieldType} from '../components/TextField';
-import {TextDivider} from '../components/TextDivider';
+import {
+  ActionButton,
+  Appearance,
+} from '../../../../components/ActionButton/ActionButton';
+import {
+  TextField,
+  FieldType,
+  InputAppearance,
+} from '../../../../components/TextField/TextField';
+import {TextDivider} from '../../../../components/TextDivider/TextDivider';
 import {ExternalLogin} from '../components/ExternalLogin';
 
 // login method enum
@@ -289,18 +296,7 @@ const OTPLoginForm = memo(() => {
     <>
       {/* Phone / OTP field */}
       <View style={[{marginBottom: 36}]}>
-        {!isSent ? (
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                marginBottom: 8,
-              },
-              fieldStyles(theme, focusedField === FieldType.Phone).fieldText,
-            ]}>
-            Phone Number
-          </Text>
-        ) : (
+        {isSent && (
           <>
             <Text
               style={[
@@ -326,7 +322,7 @@ const OTPLoginForm = memo(() => {
         )}
         {/* input field */}
         <TextField
-          placeHolder={isSent ? 'Enter Code' : 'Enter Phone Number'}
+          placeHolder={isSent ? 'Code' : 'Phone Number'}
           maxLength={isSent ? 6 : 20}
           value={isSent ? otp : number}
           setValue={isSent ? setOtp : setNumber}
@@ -343,11 +339,6 @@ const OTPLoginForm = memo(() => {
                     : theme.colors.tintedGrey[700]
                 }
                 size={18}
-                style={[
-                  {
-                    marginHorizontal: 8,
-                  },
-                ]}
               />
             ) : (
               <OctIcon
@@ -358,15 +349,11 @@ const OTPLoginForm = memo(() => {
                     : theme.colors.tintedGrey[700]
                 }
                 size={18}
-                style={[
-                  {
-                    marginHorizontal: 8,
-                  },
-                ]}
               />
             )
           }
           autoFocus={true}
+          appearance={InputAppearance.Round}
         />
         {/* info */}
         {!isSent && (

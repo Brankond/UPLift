@@ -21,11 +21,12 @@ import {Platform} from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 
 // internal dependencies
-import {Login} from 'features/global/Authentication/Login';
-import {Signup} from 'features/global/Authentication/Signup';
+import {Login} from 'features/global/authentication/Login';
+import {Signup} from 'features/global/authentication/Signup';
 import {RoleSelection} from 'features/global/RoleSelection';
 import {CaregiverStackNavigator} from 'navigators/CaregiverStackNavigator';
 import {RootStackParamList} from 'navigators/navigation-types';
+import {RecipientStackNavigator} from 'navigators/RecipientStackNavigator';
 import {ThemeContext, theme} from 'contexts';
 import store from 'store';
 
@@ -77,6 +78,10 @@ const App = () => {
               <Stack.Screen
                 name="Caregiver"
                 component={CaregiverStackNavigator}
+              />
+              <Stack.Screen
+                name="Recipient"
+                component={RecipientStackNavigator}
               />
             </Stack.Navigator>
           </NavigationContainer>

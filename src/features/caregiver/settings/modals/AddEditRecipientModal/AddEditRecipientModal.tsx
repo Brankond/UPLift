@@ -17,7 +17,7 @@ import {SvgXml} from 'react-native-svg';
 
 // internal dependencies
 import {Keyboard} from 'react-native';
-import {generalStyles} from 'features/global/Authentication/authStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 import {db} from 'environment/firebaseConfig';
 import {AddRecipientModalProps} from 'navigators/navigation-types';
 import {Divider, SaveButton} from 'components';
@@ -87,6 +87,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
     firstName: string,
     lastName: string,
     birthday: Date | undefined,
+    avatar: string,
     recipient_id: string | undefined,
   ) => {
     if (!recipient_id) {
@@ -96,7 +97,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           caregiver_id: '1',
           first_name: firstName,
           last_name: lastName,
-          avatar: photo,
+          avatar,
           date_of_birth: birthday?.toString() || undefined,
           location: '4221 West Side Avenue',
           is_fallen: false,
@@ -110,7 +111,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           changes: {
             first_name: firstName,
             last_name: lastName,
-            avatar: photo,
+            avatar,
             date_of_birth: birthday?.toString() || undefined,
           },
         }),
@@ -144,7 +145,13 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           <SaveButton
             disabled={!(firstName.length > 0 || lastName.length > 0)}
             onPress={() => {
-              addEditRecipient(firstName, lastName, birthday, recipient_id);
+              addEditRecipient(
+                firstName,
+                lastName,
+                birthday,
+                photo,
+                recipient_id,
+              );
               // commitAddRecipient(
               //   firstName,
               //   lastName,
@@ -156,7 +163,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           />
         ),
     });
-  }, [firstName, lastName, isEditing]);
+  }, [firstName, lastName, photo, birthday, isEditing]);
 
   // close datePicker when editing is finished
   useEffect(() => {

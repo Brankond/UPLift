@@ -7,7 +7,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
-import {generalStyles} from 'features/global/Authentication/authStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 import {Divider} from 'components';
 import {Recipient, recipientRemoved} from 'store/slices/recipientsSlice';
 import {

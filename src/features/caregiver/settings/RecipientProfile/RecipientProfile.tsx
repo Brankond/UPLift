@@ -9,7 +9,6 @@ import {
   Animated,
   StyleSheet,
   ScrollView,
-  Platform,
 } from 'react-native';
 import {
   useContext,
@@ -19,10 +18,12 @@ import {
   useEffect,
   createContext,
 } from 'react';
+import Clipboard from '@react-native-clipboard/clipboard';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
+import Ionicon from 'react-native-vector-icons/Ionicons';
 
 // internal dependencies
 import {Divider, TickSelection} from 'components';
@@ -41,7 +42,7 @@ import {
 import {ThemeContext} from 'contexts';
 import {AppDispatch} from 'store';
 import pickImage from 'utils/pickImage';
-import {generalStyles} from 'features/global/Authentication/authStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 
 // context
 type RecipientProfileContextType = {
@@ -402,6 +403,7 @@ const SectionHeader = memo(
 
 const InformationCard = memo(
   ({
+    id,
     isInformationEditing,
     setDatePickerDisplayed,
     birthday,
@@ -410,6 +412,7 @@ const InformationCard = memo(
     setFirstName,
     setLastName,
   }: {
+    id: string;
     firstName: string;
     lastName: string;
     setFirstName: React.Dispatch<React.SetStateAction<string>>;
@@ -418,8 +421,10 @@ const InformationCard = memo(
     setDatePickerDisplayed: React.Dispatch<React.SetStateAction<boolean>>;
     birthday: Date | undefined;
   }) => {
+    // context values
     const {theme} = useContext(ThemeContext);
 
+    // style
     const styles = StyleSheet.create({
       horizontalRow: {
         flexDirection: 'row',
@@ -437,87 +442,127 @@ const InformationCard = memo(
       fieldLabel: {
         fontSize: 14,
       },
+      roundedCornerFieldContaier: {
+        marginHorizontal: 16,
+        marginBottom: 16,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: theme.colors.tintedGrey[100],
+      },
+      secondaryText: {
+        fontFamily: theme.fonts.main,
+        fontSize: 12,
+        color: theme.colors.tintedGrey[600],
+      },
+      bodyTextVar2: {
+        fontFamily: theme.fonts.main,
+        fontSize: 14,
+        color: theme.colors.darkText,
+      },
     });
 
     return (
-      <View
-        style={{
-          marginHorizontal: theme.sizes[4],
-          marginBottom: theme.sizes[8],
-          padding: theme.sizes[4],
-          borderRadius: theme.sizes[4],
-          backgroundColor: theme.colors.tintedGrey[100],
-        }}>
-        <View style={[styles.horizontalRow]}>
-          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
-            First Name
+      <>
+        <View style={[styles.roundedCornerFieldContaier]}>
+          <Text style={[styles.secondaryText, {marginBottom: 8}]}>
+            Recipient Id
           </Text>
-          <TextInput
-            placeholderTextColor={theme.colors.tintedGrey[600]}
-            placeholder="Not Set"
-            editable={isInformationEditing}
-            style={[
-              styles.textInput,
-              {
-                color:
-                  (isInformationEditing && theme.colors.primary[400]) ||
-                  (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
-                  theme.colors.darkText,
-              },
-            ]}
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-        </View>
-        <Divider
-          style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
-        />
-        <View style={styles.horizontalRow}>
-          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
-            Last Name
-          </Text>
-          <TextInput
-            placeholderTextColor={theme.colors.tintedGrey[600]}
-            placeholder="Not Set"
-            editable={isInformationEditing}
-            style={[
-              styles.textInput,
-              {
-                color:
-                  (isInformationEditing && theme.colors.primary[400]) ||
-                  (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
-                  theme.colors.darkText,
-              },
-            ]}
-            value={lastName}
-            onChangeText={setLastName}
-          />
-        </View>
-        <Divider
-          style={{marginVertical: theme.sizes[4], marginRight: -theme.sizes[4]}}
-        />
-        <View style={styles.horizontalRow}>
-          <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
-            Birthday
-          </Text>
-          <Pressable
+          <Text
+            style={[styles.bodyTextVar2]}
             onPress={() => {
-              setDatePickerDisplayed(true);
-            }}
-            disabled={!isInformationEditing}>
-            <Text
-              style={{
-                fontFamily: theme.fonts.main,
-                color:
-                  (isInformationEditing && theme.colors.primary[400]) ||
-                  (!birthday && theme.colors.tintedGrey[600]) ||
-                  theme.colors.darkText,
-              }}>
-              {birthday ? birthday.toLocaleDateString() : 'Not Set'}
-            </Text>
-          </Pressable>
+              Clipboard.setString(id);
+            }}>
+            {id}
+          </Text>
         </View>
-      </View>
+        <View
+          style={{
+            marginHorizontal: theme.sizes[4],
+            marginBottom: theme.sizes[8],
+            padding: theme.sizes[4],
+            borderRadius: theme.sizes[4],
+            backgroundColor: theme.colors.tintedGrey[100],
+          }}>
+          {/* first name */}
+          <View style={[[generalStyles(theme).row]]}>
+            <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+              First Name
+            </Text>
+            <TextInput
+              placeholderTextColor={theme.colors.tintedGrey[600]}
+              placeholder="Not Set"
+              editable={isInformationEditing}
+              style={[
+                styles.textInput,
+                {
+                  color:
+                    (isInformationEditing && theme.colors.primary[400]) ||
+                    (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
+                    theme.colors.darkText,
+                },
+              ]}
+              value={firstName}
+              onChangeText={setFirstName}
+            />
+          </View>
+          <Divider
+            style={{
+              marginVertical: theme.sizes[4],
+              marginRight: -theme.sizes[4],
+            }}
+          />
+          {/* last name */}
+          <View style={[generalStyles(theme).row]}>
+            <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+              Last Name
+            </Text>
+            <TextInput
+              placeholderTextColor={theme.colors.tintedGrey[600]}
+              placeholder="Not Set"
+              editable={isInformationEditing}
+              style={[
+                styles.textInput,
+                {
+                  color:
+                    (isInformationEditing && theme.colors.primary[400]) ||
+                    (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
+                    theme.colors.darkText,
+                },
+              ]}
+              value={lastName}
+              onChangeText={setLastName}
+            />
+          </View>
+          <Divider
+            style={{
+              marginVertical: theme.sizes[4],
+              marginRight: -theme.sizes[4],
+            }}
+          />
+          {/* birthday */}
+          <View style={[generalStyles(theme).row]}>
+            <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+              Birthday
+            </Text>
+            <Pressable
+              onPress={() => {
+                setDatePickerDisplayed(true);
+              }}
+              disabled={!isInformationEditing}>
+              <Text
+                style={{
+                  fontFamily: theme.fonts.main,
+                  color:
+                    (isInformationEditing && theme.colors.primary[400]) ||
+                    (!birthday && theme.colors.tintedGrey[600]) ||
+                    theme.colors.darkText,
+                }}>
+                {birthday ? birthday.toLocaleDateString() : 'Not Set'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </>
     );
   },
 );
@@ -790,6 +835,42 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
         }}>
         <Avatar uri={recipient.avatar} id={recipient.id} />
         <Name firstName={recipient.first_name} lastName={recipient.last_name} />
+        {/* navigate to the recipient's view */}
+        <View style={[{alignItems: 'center', marginBottom: 16}]}>
+          <Pressable
+            style={[
+              generalStyles(theme).row,
+              {
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: theme.colors.primary[400],
+              },
+            ]}>
+            <Text
+              style={[
+                {
+                  fontFamily: theme.fonts.main,
+                  fontSize: 14,
+                  color: theme.colors.primary[400],
+                },
+              ]}>
+              Enter {recipient.first_name}'s View
+            </Text>
+            <Ionicon
+              name="ios-arrow-forward-circle"
+              size={20}
+              color={theme.colors.primary[400]}
+              style={[
+                {
+                  marginLeft: 6,
+                  marginRight: -4,
+                },
+              ]}
+            />
+          </Pressable>
+        </View>
         <ScrollView>
           <SectionHeader
             type={SectionType.Information}
@@ -797,6 +878,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
             setSaveSig={setInfoSaveSignal}
           />
           <InformationCard
+            id={recipientId}
             firstName={firstName}
             setFirstName={setFirstName}
             lastName={lastName}
