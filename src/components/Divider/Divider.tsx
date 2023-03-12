@@ -1,5 +1,5 @@
 // external dependencies
-import {View, ViewProps} from 'react-native';
+import {View, ViewProps, StyleSheet} from 'react-native';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
@@ -14,7 +14,7 @@ const Divider = ({style}: DividerProps) => {
       style={[
         {
           backgroundColor: theme.colors.tintedGrey[800],
-          height: 0.5,
+          height: StyleSheet.hairlineWidth,
           opacity: 0.3,
           marginVertical: 20,
         },

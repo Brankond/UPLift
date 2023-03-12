@@ -7,6 +7,7 @@ import {
   RecipientStackParamList,
 } from 'navigators/navigation-types';
 import {RecipientVerification} from 'features/recipient/RecipientVerification';
+import {RecipientView} from 'features/recipient/RecipientView';
 
 const Stack = createStackNavigator<RecipientStackParamList>();
 const RecipientStackNavigator = ({
@@ -22,6 +23,7 @@ const RecipientStackNavigator = ({
         name="Recipient Verification"
         component={RecipientVerification}
       />
+      <Stack.Screen name="Recipient View" component={RecipientView} />
     </Stack.Navigator>
   );
 };

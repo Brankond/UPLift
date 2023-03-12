@@ -21,6 +21,9 @@ export type CaregiverStackParamList = {
 
 export type RecipientStackParamList = {
   'Recipient Verification': undefined;
+  'Recipient View': {
+    recipientId: string;
+  };
 };
 
 export type CaregiverTabParamList = {
@@ -108,6 +111,12 @@ export type CaregiverBottomTabNavigatorProps = StackScreenProps<
 export type RecipientVerificationProps = StackScreenProps<
   RecipientStackParamList,
   'Recipient Verification'
+>;
+
+// recipient view
+export type RecipientViewProps = StackScreenProps<
+  RecipientStackParamList,
+  'Recipient View'
 >;
 
 // image to speech

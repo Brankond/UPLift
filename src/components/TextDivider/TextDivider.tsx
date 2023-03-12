@@ -1,6 +1,6 @@
 // external dependencies
 import {memo, useContext} from 'react';
-import {View, Text} from 'native-base';
+import {View, Text, StyleSheet} from 'react-native';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
@@ -10,6 +10,17 @@ export const TextDivider = memo(
   ({text, width = '70%'}: {text: string; width?: string}) => {
     // context values
     const {theme} = useContext(ThemeContext);
+
+    // styles
+    const styles = StyleSheet.create({
+      sideLineBreak: {
+        flex: 1,
+        height: StyleSheet.hairlineWidth,
+        opacity: 0.5,
+        backgroundColor: theme.colors.tintedGrey[800],
+      },
+    });
+
     return (
       <View
         style={[
@@ -20,14 +31,7 @@ export const TextDivider = memo(
             alignItems: 'center',
           },
         ]}>
-        <View
-          style={[
-            {
-              flex: 1,
-              borderBottomColor: theme.colors.tintedGrey[900],
-              borderBottomWidth: 0.5,
-            },
-          ]}></View>
+        <View style={[styles.sideLineBreak]}></View>
         <Text
           style={[
             generalStyles(theme).text,
@@ -38,14 +42,7 @@ export const TextDivider = memo(
           ]}>
           {text}
         </Text>
-        <View
-          style={[
-            {
-              flex: 1,
-              borderBottomColor: theme.colors.tintedGrey[900],
-              borderBottomWidth: 0.5,
-            },
-          ]}></View>
+        <View style={[styles.sideLineBreak]}></View>
       </View>
     );
   },
