@@ -12,13 +12,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import 'react-native-get-random-values';
 import {v4} from 'uuid';
 import Picker from '@react-native-community/datetimepicker';
-import {collection, addDoc} from 'firebase/firestore';
 import {SvgXml} from 'react-native-svg';
 
 // internal dependencies
 import {Keyboard} from 'react-native';
 import {generalStyles} from 'features/global/authentication/authStyles';
-import {db} from 'environment/firebaseConfig';
 import {AddRecipientModalProps} from 'navigators/navigation-types';
 import {Divider, SaveButton} from 'components';
 import {ThemeContext} from 'contexts';
@@ -33,23 +31,23 @@ import pickImage from 'utils/pickImage';
 
 // handlers
 // commit changes to firebase
-const commitAddRecipient = async (
-  firstName: string,
-  lastName: string,
-  birthday: string | undefined,
-  photo: string,
-) => {
-  const recipientData = {
-    name: {
-      firstName,
-      lastName,
-    },
-    birthday,
-    photo,
-  };
+// const commitAddRecipient = async (
+//   firstName: string,
+//   lastName: string,
+//   birthday: string | undefined,
+//   photo: string,
+// ) => {
+//   const recipientData = {
+//     name: {
+//       firstName,
+//       lastName,
+//     },
+//     birthday,
+//     photo,
+//   };
 
-  await addDoc(collection(db, 'recipient'), recipientData);
-};
+//   await addDoc(collection(db, 'recipient'), recipientData);
+// };
 
 const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
   const {theme} = useContext(ThemeContext);

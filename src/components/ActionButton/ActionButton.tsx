@@ -1,7 +1,7 @@
 // external dependencies
 import {memo, useContext} from 'react';
 import {Text, Pressable} from 'react-native';
-import {ViewProps} from 'react-native';
+import {StyleProp, TextStyle, ViewStyle, PressableProps} from 'react-native';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
@@ -16,11 +16,20 @@ type ActionButtonProps = {
   text: string;
   onPress?: () => void;
   appearance?: Appearance;
-};
+  containerStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+} & PressableProps;
 
 // login button
 export const ActionButton = memo(
-  ({text, onPress, appearance = Appearance.Stuffed}: ActionButtonProps) => {
+  ({
+    text,
+    disabled,
+    onPress,
+    appearance = Appearance.Stuffed,
+    containerStyle,
+    textStyle,
+  }: ActionButtonProps) => {
     // context values
     const {theme} = useContext(ThemeContext);
 
@@ -42,7 +51,9 @@ export const ActionButton = memo(
             alignItems: 'center',
             justifyContent: 'center',
           },
+          containerStyle,
         ]}
+        disabled={disabled}
         onPress={() => {
           if (!onPress) return;
           onPress();
@@ -57,6 +68,7 @@ export const ActionButton = memo(
                   : theme.colors.primary[400],
               fontWeight: theme.fontWeights.bold,
             },
+            textStyle,
           ]}>
           {text}
         </Text>

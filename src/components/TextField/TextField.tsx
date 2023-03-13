@@ -1,6 +1,13 @@
 // external dependencies
 import {memo, useContext, useState} from 'react';
-import {View, TextInput} from 'react-native';
+import {
+  View,
+  TextInput,
+  TextInputProps,
+  ViewStyle,
+  TextStyle,
+  StyleProp,
+} from 'react-native';
 
 // internal dependencies
 import {
@@ -29,7 +36,7 @@ export enum InputAppearance {
 }
 
 // props type
-interface TextFieldProps {
+type TextFieldProps = TextInputProps & {
   placeHolder: string;
   value: string;
   setValue: React.Dispatch<React.SetStateAction<string>>;
@@ -41,10 +48,13 @@ interface TextFieldProps {
   autoFocus?: boolean;
   maxLength?: number;
   appearance?: InputAppearance;
-}
+  containerStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+};
 
 export const TextField = memo(
   ({
+    editable,
     placeHolder,
     value,
     setValue,
@@ -56,12 +66,12 @@ export const TextField = memo(
     autoFocus = false,
     maxLength = 50,
     appearance = InputAppearance.Square,
+    onEndEditing,
+    containerStyle,
+    textStyle,
   }: TextFieldProps) => {
     // context values
     const {theme} = useContext(ThemeContext);
-
-    // states
-    const [focused, setFocused] = useState<boolean>(false);
 
     return (
       <View
@@ -76,8 +86,10 @@ export const TextField = memo(
             paddingHorizontal: appearance === InputAppearance.Square ? 8 : 16,
           },
           fieldStyles(theme, focusedField === fieldType).fieldContainer,
+          containerStyle,
         ]}>
         <TextInput
+          editable={editable}
           maxLength={maxLength}
           secureTextEntry={secureEntry}
           value={value}
@@ -85,6 +97,7 @@ export const TextField = memo(
           onFocus={() => {
             setFocusedField(fieldType);
           }}
+          onEndEditing={onEndEditing}
           onBlur={() => {
             setFocusedField(FieldType.None);
           }}
@@ -97,6 +110,7 @@ export const TextField = memo(
               flex: 1,
             },
             fieldStyles(theme, focusedField === fieldType).fieldText,
+            textStyle,
           ]}
         />
         {icon}
