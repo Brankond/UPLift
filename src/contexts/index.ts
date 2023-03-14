@@ -1,5 +1,7 @@
 import React from 'react';
-import {theme} from './theme-context/theme-context';
+import {theme} from './ThemeContext/ThemeContext';
+import {AuthContext} from './AuthContext/AuthContext';
 
 const ThemeContext = React.createContext({theme});
-export {ThemeContext, theme};
+
+export {AuthContext, ThemeContext, theme};

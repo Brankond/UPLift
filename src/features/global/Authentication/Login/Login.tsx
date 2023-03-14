@@ -4,10 +4,9 @@ import {
   SafeAreaView,
   View,
   Text,
-  Image,
   StyleSheet,
   Pressable,
-  TextInput,
+  Keyboard,
   Alert,
 } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -18,20 +17,18 @@ import ReactNativeBiometrics, {BiometryType} from 'react-native-biometrics';
 import {useNavigation} from '@react-navigation/native';
 
 // internal dependencies
-import {LoginProps} from 'navigators/navigation-types';
 import {ThemeContext} from 'contexts';
-import {generalStyles, fieldStyles} from '../authStyles';
-import {
-  ActionButton,
-  Appearance,
-} from '../../../../components/ActionButton/ActionButton';
+import {LoginProps} from 'navigators/navigation-types';
+import {LoginErrors, emailPasswordLogin} from 'services/fireBaseAuth';
+import {ActionButton, Appearance} from 'components/ActionButton/ActionButton';
 import {
   TextField,
   FieldType,
   InputAppearance,
-} from '../../../../components/TextField/TextField';
-import {TextDivider} from '../../../../components/TextDivider/TextDivider';
+} from 'components/TextField/TextField';
+import {TextDivider, Message, MessageType} from 'components';
 import {ExternalLogin} from '../components/ExternalLogin';
+import {generalStyles, fieldStyles} from '../authStyles';
 
 // login method enum
 enum LoginMethod {
@@ -45,7 +42,7 @@ const iosFaceIDPrompt = async (bio: ReactNativeBiometrics) => {
     promptMessage: 'Login with Face ID',
   });
 
-  const {success, error} = result;
+  const {error} = result;
   if (error) {
     Alert.alert('Face ID Login Failed', `Error: ${error}`);
     return;
@@ -123,6 +120,7 @@ const EmailLoginForm = memo(() => {
   const [password, setPassword] = useState<string>('');
   const [passwordShown, setPasswordShown] = useState<boolean>(false);
   const [focusedField, setFocusedField] = useState<FieldType>(FieldType.Email);
+  const [loginError, setLoginError] = useState<LoginErrors | null>(null);
 
   return (
     <>
@@ -163,6 +161,43 @@ const EmailLoginForm = memo(() => {
           }
           autoFocus={true}
         />
+        {/* email related error messages */}
+        {(loginError === LoginErrors.INVALID_EMAIL && (
+          <Message
+            type={MessageType.Danger}
+            message="Invalid email > <"
+            containerStyle={[
+              {
+                paddingHorizontal: 8,
+                marginTop: 8,
+              },
+            ]}
+          />
+        )) ||
+          (loginError === LoginErrors.USER_NOT_FOUND && (
+            <Message
+              type={MessageType.Danger}
+              message="User not found > <"
+              containerStyle={[
+                {
+                  paddingHorizontal: 8,
+                  marginTop: 8,
+                },
+              ]}
+            />
+          )) ||
+          (loginError === LoginErrors.USER_DISABLED && (
+            <Message
+              type={MessageType.Danger}
+              message="User disabled > <"
+              containerStyle={[
+                {
+                  paddingHorizontal: 8,
+                  marginTop: 8,
+                },
+              ]}
+            />
+          ))}
       </View>
       {/* password */}
       <View style={[{marginBottom: 36}]}>
@@ -223,13 +258,30 @@ const EmailLoginForm = memo(() => {
             </Pressable>
           }
         />
+        {/* password related error messages */}
+        {loginError === LoginErrors.WRONG_PASSWORD && (
+          <Message
+            type={MessageType.Danger}
+            message="Wrong password > <"
+            containerStyle={[
+              {
+                paddingHorizontal: 8,
+                marginTop: 8,
+              },
+            ]}
+          />
+        )}
       </View>
       {/* loginButton */}
       <View style={[{marginBottom: 16}]}>
         <ActionButton
           text="Login"
-          onPress={() => {
-            navigation.navigate('Role Selection');
+          onPress={async () => {
+            await emailPasswordLogin(
+              email.toLowerCase(),
+              password,
+              setLoginError,
+            );
           }}
         />
       </View>
@@ -442,80 +494,86 @@ const Login = ({navigation, route}: LoginProps) => {
 
   return (
     <SafeAreaView style={[generalStyles(theme).bodyContainer]}>
-      {/* logo */}
-      <View
-        style={[
-          {
-            width: 72,
-            height: 72,
-            borderRadius: 36,
-            backgroundColor: theme.colors.tintedGrey[300],
-            marginVertical: 32,
-            alignSelf: 'center',
-          },
-        ]}></View>
-      {/* login method switch */}
-      <View
-        style={[
-          {
-            flexDirection: 'row',
-            paddingHorizontal: 24,
-            alignItems: 'flex-end',
-          },
-        ]}>
-        {/* email login tab */}
-        <Pressable
-          style={[styles(mode === LoginMethod.Credentials).labelContainer]}
-          onPress={() => {
-            setMode(LoginMethod.Credentials);
-          }}>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              styles(mode === LoginMethod.Credentials).labelText,
-            ]}>
-            Email Login
-          </Text>
-        </Pressable>
-        {/* otp login tab */}
-        <Pressable
-          style={[styles(mode === LoginMethod.OTP).labelContainer]}
-          onPress={() => {
-            setMode(LoginMethod.OTP);
-          }}>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              styles(mode === LoginMethod.OTP).labelText,
-            ]}>
-            OTP Login
-          </Text>
-        </Pressable>
-      </View>
-      {/* form body */}
-      <View
-        style={[
-          {
-            flex: 1,
-            zIndex: 10,
-            backgroundColor: theme.colors.light[50],
-            paddingHorizontal: 24,
-            paddingTop: 32,
-          },
-          styles().formBodyShadow,
-        ]}>
-        {mode === LoginMethod.Credentials && <EmailLoginForm />}
-        {mode === LoginMethod.OTP && <OTPLoginForm />}
-      </View>
-      {/* biometrics */}
-      <View
-        style={[
-          {
-            paddingHorizontal: 24,
-          },
-        ]}>
-        <BiometricsLogin />
-      </View>
+      <Pressable
+        style={[{flex: 1}]}
+        onPress={() => {
+          Keyboard.dismiss();
+        }}>
+        {/* logo */}
+        <View
+          style={[
+            {
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              backgroundColor: theme.colors.tintedGrey[300],
+              marginVertical: 32,
+              alignSelf: 'center',
+            },
+          ]}></View>
+        {/* login method switch */}
+        <View
+          style={[
+            {
+              flexDirection: 'row',
+              paddingHorizontal: 24,
+              alignItems: 'flex-end',
+            },
+          ]}>
+          {/* email login tab */}
+          <Pressable
+            style={[styles(mode === LoginMethod.Credentials).labelContainer]}
+            onPress={() => {
+              setMode(LoginMethod.Credentials);
+            }}>
+            <Text
+              style={[
+                generalStyles(theme).text,
+                styles(mode === LoginMethod.Credentials).labelText,
+              ]}>
+              Email Login
+            </Text>
+          </Pressable>
+          {/* otp login tab */}
+          <Pressable
+            style={[styles(mode === LoginMethod.OTP).labelContainer]}
+            onPress={() => {
+              setMode(LoginMethod.OTP);
+            }}>
+            <Text
+              style={[
+                generalStyles(theme).text,
+                styles(mode === LoginMethod.OTP).labelText,
+              ]}>
+              OTP Login
+            </Text>
+          </Pressable>
+        </View>
+        {/* form body */}
+        <View
+          style={[
+            {
+              flex: 1,
+              zIndex: 10,
+              backgroundColor: theme.colors.light[50],
+              paddingHorizontal: 24,
+              paddingTop: 32,
+            },
+            styles().formBodyShadow,
+          ]}>
+          {mode === LoginMethod.Credentials && <EmailLoginForm />}
+          {mode === LoginMethod.OTP && <OTPLoginForm />}
+        </View>
+        {/* biometrics */}
+        <View
+          style={[
+            {
+              paddingHorizontal: 24,
+            },
+          ]}>
+          <BiometricsLogin />
+        </View>
+      </Pressable>
     </SafeAreaView>
   );
 };
