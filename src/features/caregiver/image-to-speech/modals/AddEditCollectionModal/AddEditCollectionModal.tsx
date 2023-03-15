@@ -1,21 +1,23 @@
 // external dependencies
+import 'react-native-get-random-values';
 import {
   View,
   Text,
   SafeAreaView,
   TextInput,
   Pressable,
+  Platform,
   Image,
 } from 'react-native';
 import {useContext, useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
-import 'react-native-get-random-values';
 import {v4} from 'uuid';
 
 // internal dependencies
 import {AddCollectionModalProps} from 'navigators/navigation-types';
 import {SaveButton} from 'components';
 import {ThemeContext} from 'contexts';
+import {useHideBottomTab} from 'hooks/useHideBottomTab';
+import {useAppSelector, useAppDispatch} from 'hooks';
 import {
   collectionAdded,
   collectionUpdated,
@@ -25,8 +27,7 @@ import {
   recipientUpdated,
   selectRecipientById,
 } from 'store/slices/recipientsSlice';
-import {RootState} from 'store';
-import {useHideBottomTab} from 'hooks/useHideBottomTab';
+import {dimensions} from 'features/global/globalStyles';
 import pickImage from 'utils/pickImage';
 
 const AddEditCollectionModal = ({
@@ -38,13 +39,11 @@ const AddEditCollectionModal = ({
   // route params
   const recipient_id = route.params.recipient_id;
   const collection_id = route.params?.collection_id;
-  const recipient = useSelector((state: RootState) =>
+  const recipient = useAppSelector(state =>
     selectRecipientById(state, recipient_id),
   );
   const collection = collection_id
-    ? useSelector((state: RootState) =>
-        selectCollectionById(state, collection_id),
-      )
+    ? useAppSelector(state => selectCollectionById(state, collection_id))
     : undefined;
 
   // component states
@@ -52,7 +51,7 @@ const AddEditCollectionModal = ({
   const [cover, setCover] = useState(collection ? collection.cover_image : '');
 
   // redux
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const addEditCollection = (title: string, recipient_id: string) => {
     if (!collection) {
@@ -163,7 +162,10 @@ const AddEditCollectionModal = ({
             value={title}
             onChangeText={setTitle}
             placeholder="Title"
-            keyboardType="default"
+            inputMode="text"
+            style={[
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
+            ]}
           />
         </View>
       </View>

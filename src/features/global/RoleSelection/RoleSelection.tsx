@@ -38,6 +38,7 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
         }}></View>
       <Text
         style={{
+          fontFamily: theme.fonts.main,
           fontSize: theme.fontSizes['5xl'],
           fontWeight: theme.fontWeights.bold,
           color: theme.colors.primary[400],

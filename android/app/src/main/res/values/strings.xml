@@ -1,3 +1,5 @@
 <resources>
+    <string name="facebook_app_id">164559236421416</string>
+    <string name="facebook_client_token">0b43cc6bddef6a9ff38985551aa17022</string>
     <string name="app_name">UPlift</string>
 </resources>

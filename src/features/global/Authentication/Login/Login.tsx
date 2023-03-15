@@ -137,9 +137,9 @@ const EmailLoginForm = memo(() => {
           Email
         </Text>
         <TextField
-          placeHolder="Enter Email"
+          placeholder="Enter Email"
           value={email}
-          setValue={setEmail}
+          onChangeText={setEmail}
           fieldType={FieldType.Email}
           focusedField={focusedField}
           setFocusedField={setFocusedField}
@@ -232,13 +232,13 @@ const EmailLoginForm = memo(() => {
           </Text>
         </View>
         <TextField
-          placeHolder="Enter Password"
+          placeholder="Enter Password"
           value={password}
-          setValue={setPassword}
+          onChangeText={setPassword}
           fieldType={FieldType.Password}
           focusedField={focusedField}
           setFocusedField={setFocusedField}
-          secureEntry={!passwordShown}
+          secureTextEntry={!passwordShown}
           icon={
             <Pressable onPress={() => setPasswordShown(!passwordShown)}>
               <FeatherIcon
@@ -277,6 +277,7 @@ const EmailLoginForm = memo(() => {
         <ActionButton
           text="Login"
           onPress={async () => {
+            console.log('Login Button Clicked');
             await emailPasswordLogin(
               email.toLowerCase(),
               password,
@@ -374,10 +375,10 @@ const OTPLoginForm = memo(() => {
         )}
         {/* input field */}
         <TextField
-          placeHolder={isSent ? 'Code' : 'Phone Number'}
+          placeholder={isSent ? 'Code' : 'Phone Number'}
           maxLength={isSent ? 6 : 20}
           value={isSent ? otp : number}
-          setValue={isSent ? setOtp : setNumber}
+          onChangeText={isSent ? setOtp : setNumber}
           fieldType={isSent ? FieldType.OTP : FieldType.Phone}
           focusedField={focusedField}
           setFocusedField={setFocusedField}

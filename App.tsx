@@ -47,16 +47,15 @@ function App(): JSX.Element {
    */
   // listen for user state change
   // for dev: signout everytime app opens
-  useEffect(() => {
-    return () => {
-      auth().signOut();
-    };
-  }, []);
+  // useEffect(() => {
+  //   auth().signOut();
+  // }, []);
   useEffect(() => {
     const service = auth().onAuthStateChanged(user => {
       if (user) {
         if (user.emailVerified) {
           console.log('User set');
+          console.log('User Details: ', user);
           setUser(user);
         } else {
           console.log('User email is not verified');

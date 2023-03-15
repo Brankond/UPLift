@@ -23,17 +23,18 @@ import {v4} from 'uuid';
 import {useHeaderHeight} from '@react-navigation/elements';
 
 // internal dependencies
-import {RelationshipContext} from '../../../../../navigators/SettingsStackNavigator/SettingsStackNavigator';
 import {ThemeContext} from 'contexts';
 import {AddContactModalProps} from 'navigators/navigation-types';
-import {SaveButton, Divider} from 'components';
-import {useAppDispatch, useAppSelector} from 'hooks';
 import {selectContactById} from 'store/slices/emergencyContactsSlice';
-import {generalStyles} from 'features/global/authentication/authStyles';
 import {
   contactAdded,
   contactUpdated,
 } from 'store/slices/emergencyContactsSlice';
+import {RelationshipContext} from 'navigators/SettingsStackNavigator/SettingsStackNavigator';
+import {SaveButton, Divider} from 'components';
+import {useAppDispatch, useAppSelector} from 'hooks';
+import {dimensions, layout} from 'features/global/globalStyles';
+import {generalStyles} from 'features/global/authentication/authStyles';
 
 // handlers
 const updateContactMethodEntryValue = (
@@ -141,6 +142,7 @@ const ContactMethodEntryItem = memo(
             }
             style={[
               generalStyles(theme).text,
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
               {fontSize: 14},
               {
                 flex: 1,
@@ -212,45 +214,46 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
       ]}>
       {entryList}
       {/* Add entry row */}
-      <View
+      <Pressable
         style={{
           paddingHorizontal: theme.sizes[5],
           paddingVertical: theme.sizes[4],
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
+        }}
+        onPress={() => {
+          setContactMethodEntries([...contactMethodEntries, '']);
         }}>
-        <Pressable
-          style={{
-            width: theme.sizes[4],
-            height: theme.sizes[4],
-            backgroundColor: theme.colors.primary[400],
-            borderRadius: theme.sizes[2],
-            alignSelf: 'center',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onPress={() => {
-            setContactMethodEntries([...contactMethodEntries, '']);
-          }}>
+        <View
+          style={[
+            layout(theme).centered,
+            {
+              width: 16,
+              height: 16,
+              backgroundColor: theme.colors.primary[400],
+              borderRadius: theme.sizes[2],
+            },
+          ]}>
           <FeatherIcon
             name="plus"
             color={theme.colors.light[50]}
             size={theme.sizes[3]}
           />
-        </Pressable>
+        </View>
         <Text
           style={[
             generalStyles(theme).text,
-            {fontSize: 14},
+            Platform.OS === 'android' && dimensions(theme).androidTextSize,
             {
+              fontSize: 14,
               flex: 1,
               marginLeft: theme.sizes[5],
             },
           ]}>
           {method === ContactMethod.Email ? 'Add Email' : 'Add Number'}
         </Text>
-      </View>
+      </Pressable>
     </View>
   ) : (
     <></>
@@ -402,10 +405,13 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
               <TextInput
                 style={[
                   generalStyles(theme).text,
+                  Platform.OS === 'android' &&
+                    dimensions(theme).androidTextSize,
                   {
                     fontSize: 14,
                   },
                 ]}
+                inputMode="text"
                 placeholderTextColor={theme.colors.tintedGrey[500]}
                 ref={firstNameInputRef}
                 onFocus={() => {
@@ -423,10 +429,13 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
               <TextInput
                 style={[
                   generalStyles(theme).text,
+                  Platform.OS === 'android' &&
+                    dimensions(theme).androidTextSize,
                   {
                     fontSize: 14,
                   },
                 ]}
+                inputMode="text"
                 placeholderTextColor={theme.colors.tintedGrey[500]}
                 ref={lastNameInputRef}
                 onFocus={() => {

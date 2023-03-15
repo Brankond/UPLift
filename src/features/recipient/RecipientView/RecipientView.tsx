@@ -192,6 +192,7 @@ const PlayButton = memo(() => {
               width: -2.5,
               height: 5,
             },
+            elevation: 10,
             shadowOpacity: 0.4,
             shadowRadius: 8,
           },

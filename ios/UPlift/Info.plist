@@ -20,6 +20,18 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.469786346755-f0r5ccvtdojeuc5rrrqc31r4iscc7o7h</string>
+                <string>fb164559236421416</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -87,5 +99,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    <key>FacebookAppID</key>
+    <string>164559236421416</string>
+    <key>FacebookClientToken</key>
+    <string>0b43cc6bddef6a9ff38985551aa17022</string>
+    <key>FacebookDisplayName</key>
+    <string>UPlift</string>
 </dict>
 </plist>

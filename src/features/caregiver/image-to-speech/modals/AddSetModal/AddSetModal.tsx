@@ -1,7 +1,6 @@
 // external dependencies
 import {useContext, useEffect, useState, useCallback} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
-import {useSelector, useDispatch} from 'react-redux';
 import {
   SafeAreaView,
   ScrollView,
@@ -12,24 +11,24 @@ import {
   Image,
   TextInput,
   InteractionManager,
+  Platform,
 } from 'react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import {v4} from 'uuid';
 import TrackPlayer, {
   Track,
   usePlaybackState,
-  State,
   useTrackPlayerEvents,
   Event,
 } from 'react-native-track-player';
 
 // internal dependencies
 import {AddSetModalProps, SetEditType} from 'navigators/navigation-types';
-import {RootState} from 'store';
+import {useAppSelector, useAppDispatch} from 'hooks';
 import {selectSetById, setAdded, setUpdated} from 'store/slices/setsSlice';
 import {ThemeContext} from 'contexts';
 import {Divider, SaveButton, PlayButton} from 'components';
 import {useHideBottomTab} from 'hooks/useHideBottomTab';
+import {dimensions} from 'features/global/globalStyles';
 import pickImage from 'utils/pickImage';
 import pickDocument from 'utils/pickDocument';
 import {trimSuffix} from 'utils/trimSuffix';
@@ -67,9 +66,9 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
   const editType = route.params.editType;
 
   // redux
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const set = setId
-    ? useSelector((state: RootState) => selectSetById(state, setId))
+    ? useAppSelector(state => selectSetById(state, setId))
     : undefined;
 
   const addSet = (
@@ -230,7 +229,11 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                   value={imageTitle}
                   onChangeText={setImageTitle}
                   placeholder="Image Title"
-                  keyboardType="default"
+                  inputMode="text"
+                  style={[
+                    Platform.OS === 'android' &&
+                      dimensions(theme).androidTextSize,
+                  ]}
                 />
               </View>
             </View>
@@ -320,7 +323,11 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                   value={audioTitle}
                   onChangeText={setAudioTitle}
                   placeholder="Audio Title"
-                  keyboardType="default"
+                  inputMode="text"
+                  style={[
+                    Platform.OS === 'android' &&
+                      dimensions(theme).androidTextSize,
+                  ]}
                 />
               </View>
             </View>

@@ -1,12 +1,13 @@
 // external dependencies
 import {memo, useContext} from 'react';
-import {View, Pressable, StyleSheet} from 'react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import {View, Pressable, StyleSheet, Platform} from 'react-native';
+// import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 
 // internal dependencies
 import {ThemeContext} from 'contexts';
-import {TextDivider} from '../../../../components/TextDivider/TextDivider';
+import {appleLogin, googleLogin, facebookLogin} from 'services/fireBaseAuth';
+import {TextDivider} from 'components/TextDivider/TextDivider';
 
 export const ExternalLogin = memo(() => {
   // context values
@@ -38,23 +39,35 @@ export const ExternalLogin = memo(() => {
         ]}>
         <Pressable
           style={[styles.iconButton, {paddingTop: 1, paddingLeft: 1}]}
-          onPress={() => {}}>
+          onPress={async () => {
+            await googleLogin();
+          }}>
           <AntIcon name="google" color={theme.colors.light[50]} size={20} />
         </Pressable>
-        <Pressable
+        {/* facebook authentication disabled as Facebook Login API is only for business usage */}
+        {/* <Pressable
           style={[
             styles.iconButton,
             {marginHorizontal: 24, paddingTop: 1, paddingLeft: 1},
-          ]}>
+          ]}
+          onPress={async () => {
+            await facebookLogin();
+          }}>
           <MaterialIcon
             name="facebook"
             color={theme.colors.light[50]}
             size={24}
           />
-        </Pressable>
-        <Pressable style={[styles.iconButton]}>
-          <AntIcon name="apple1" color={theme.colors.light[50]} size={20} />
-        </Pressable>
+        </Pressable> */}
+        {Platform.OS === 'ios' && (
+          <Pressable
+            style={[styles.iconButton]}
+            onPress={async () => {
+              await appleLogin();
+            }}>
+            <AntIcon name="apple1" color={theme.colors.light[50]} size={20} />
+          </Pressable>
+        )}
       </View>
     </View>
   );

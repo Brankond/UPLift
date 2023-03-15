@@ -2,7 +2,7 @@
 import {StyleSheet} from 'react-native';
 
 // internal dependencies
-import {ThemeType} from 'contexts/ThemeContext/theme-context';
+import {ThemeType} from 'contexts/ThemeContext/ThemeContext';
 
 export const generalStyles = (theme: ThemeType, isFocused?: boolean) =>
   StyleSheet.create({

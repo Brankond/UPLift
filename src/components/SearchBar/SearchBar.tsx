@@ -8,10 +8,9 @@ import {
   Pressable,
   Text,
   Keyboard,
+  Platform,
 } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeOut,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
@@ -19,7 +18,7 @@ import Animated, {
 import FeatherIcon from 'react-native-vector-icons/Feather';
 
 // internal dependencies
-import {layout, typography} from 'features/global/globalStyles';
+import {layout, typography, dimensions} from 'features/global/globalStyles';
 import {ThemeContext} from 'contexts';
 
 // props
@@ -123,6 +122,7 @@ const SearchBar = memo(
             placeholderTextColor={theme.colors.tintedGrey[600]}
             style={[
               typography(theme).mdBodyTextDark,
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
               {
                 flex: 1,
                 marginLeft: 12,

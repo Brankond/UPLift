@@ -2,7 +2,7 @@
 import {StyleSheet} from 'react-native';
 
 // internal dependencies
-import {ThemeType} from 'contexts/ThemeContext/theme-context';
+import {ThemeType} from 'contexts/ThemeContext/ThemeContext';
 
 export const typography = (theme: ThemeType) => {
   const fontFamily = theme.fonts.main;
@@ -75,6 +75,16 @@ export const layout = (theme: ThemeType) => {
     centered: {
       justifyContent: 'center',
       alignItems: 'center',
+    },
+  });
+};
+
+export const dimensions = (theme: ThemeType) => {
+  return StyleSheet.create({
+    androidTextSize: {
+      padding: 0,
+      margin: 0,
+      height: 20,
     },
   });
 };

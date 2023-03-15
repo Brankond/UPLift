@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  Platform,
   Animated,
   StyleSheet,
   ScrollView,
@@ -26,9 +27,8 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 
 // internal dependencies
-import {Divider, TickSelection} from 'components';
-import {fadeIn, fadeOut} from 'utils/animations';
 import {RecipientProfileProps} from 'navigators/navigation-types';
+import {AppDispatch} from 'store';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {
   selectRecipientById,
@@ -40,9 +40,11 @@ import {
   selectContactsByRecipientId,
 } from 'store/slices/emergencyContactsSlice';
 import {ThemeContext} from 'contexts';
-import {AppDispatch} from 'store';
+import {Divider, TickSelection} from 'components';
+import {fadeIn, fadeOut} from 'utils/animations';
 import pickImage from 'utils/pickImage';
 import {generalStyles} from 'features/global/authentication/authStyles';
+import {dimensions} from 'features/global/globalStyles';
 
 // context
 type RecipientProfileContextType = {
@@ -489,11 +491,13 @@ const InformationCard = memo(
               First Name
             </Text>
             <TextInput
+              inputMode="text"
               placeholderTextColor={theme.colors.tintedGrey[600]}
               placeholder="Not Set"
               editable={isInformationEditing}
               style={[
                 styles.textInput,
+                Platform.OS === 'android' && dimensions(theme).androidTextSize,
                 {
                   color:
                     (isInformationEditing && theme.colors.primary[400]) ||
@@ -517,11 +521,13 @@ const InformationCard = memo(
               Last Name
             </Text>
             <TextInput
+              inputMode="text"
               placeholderTextColor={theme.colors.tintedGrey[600]}
               placeholder="Not Set"
               editable={isInformationEditing}
               style={[
                 styles.textInput,
+                Platform.OS === 'android' && dimensions(theme).androidTextSize,
                 {
                   color:
                     (isInformationEditing && theme.colors.primary[400]) ||
@@ -541,7 +547,12 @@ const InformationCard = memo(
           />
           {/* birthday */}
           <View style={[generalStyles(theme).row]}>
-            <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+            <Text
+              style={[
+                generalStyles(theme).text,
+                styles.fieldLabel,
+                Platform.OS === 'android' && dimensions(theme).androidTextSize,
+              ]}>
               Birthday
             </Text>
             <Pressable

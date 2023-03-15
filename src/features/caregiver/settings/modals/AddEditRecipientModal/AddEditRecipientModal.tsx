@@ -1,4 +1,6 @@
 // external dependencies
+import 'react-native-get-random-values';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -6,28 +8,27 @@ import {
   TextInput,
   Pressable,
   Image,
+  Platform,
+  Keyboard,
 } from 'react-native';
-import {useContext, useEffect, useRef, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import 'react-native-get-random-values';
-import {v4} from 'uuid';
 import Picker from '@react-native-community/datetimepicker';
+import {v4} from 'uuid';
 import {SvgXml} from 'react-native-svg';
 
 // internal dependencies
-import {Keyboard} from 'react-native';
-import {generalStyles} from 'features/global/authentication/authStyles';
+import {ThemeContext} from 'contexts';
 import {AddRecipientModalProps} from 'navigators/navigation-types';
 import {Divider, SaveButton} from 'components';
-import {ThemeContext} from 'contexts';
 import {
   recipientAdded,
   recipientUpdated,
   selectRecipientById,
 } from 'store/slices/recipientsSlice';
-import {RootState} from 'store';
+import {useAppDispatch, useAppSelector} from 'hooks';
 import {useHideBottomTab} from 'hooks/useHideBottomTab';
 import pickImage from 'utils/pickImage';
+import {generalStyles} from 'features/global/authentication/authStyles';
+import {dimensions} from 'features/global/globalStyles';
 
 // handlers
 // commit changes to firebase
@@ -55,9 +56,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
   // route params
   const recipient_id = route.params.recipient_id;
   const recipient = recipient_id
-    ? useSelector((state: RootState) =>
-        selectRecipientById(state, recipient_id),
-      )
+    ? useAppSelector(state => selectRecipientById(state, recipient_id))
     : undefined;
 
   // component state
@@ -80,7 +79,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
   const lastNameInputRef = useRef<TextInput>(null);
 
   // redux
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const addEditRecipient = (
     firstName: string,
     lastName: string,
@@ -203,7 +202,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           />
         ) : (
           <SvgXml
-            xml={`<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.tintedGrey[700]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.tintedGrey[700]}/></svg>`}
+            xml={`<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.light[50]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.light[50]}/></svg>`}
             width="80%"
             height="80%"
           />
@@ -245,6 +244,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             paddingHorizontal: theme.sizes[5],
           }}>
           <TextInput
+            inputMode="text"
             placeholderTextColor={theme.colors.tintedGrey[500]}
             ref={firstNameInputRef}
             onFocus={() => {
@@ -260,6 +260,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             keyboardType="default"
             style={[
               generalStyles(theme).text,
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
               {
                 fontSize: 14,
               },
@@ -268,6 +269,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           <Divider style={{marginVertical: theme.sizes[3]}} />
           {/* Last name */}
           <TextInput
+            inputMode="text"
             placeholderTextColor={theme.colors.tintedGrey[500]}
             ref={lastNameInputRef}
             onFocus={() => {
@@ -283,6 +285,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             keyboardType="default"
             style={[
               generalStyles(theme).text,
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
               {
                 fontSize: 14,
               },
@@ -310,6 +313,8 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
               <Text
                 style={[
                   generalStyles(theme).text,
+                  Platform.OS === 'android' &&
+                    dimensions(theme).androidTextSize,
                   {
                     fontSize: 14,
                   },
@@ -331,9 +336,15 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             value={birthday || new Date('2001-01-01')}
             mode="date"
             display="spinner"
-            onChange={(_, date) => {
+            onChange={(event, date) => {
               if (!date) return;
               setBirthDay(date);
+
+              // hide timepicker ui upon dismissing the UI
+              if (event.type === 'dismissed' || event.type === 'set') {
+                setTimePickerDisplayed(false);
+                setIsEditing(false);
+              }
             }}
           />
         </View>

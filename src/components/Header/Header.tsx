@@ -2,13 +2,9 @@ import {Text, Pressable, TextInput, StyleSheet} from 'react-native';
 import {useContext} from 'react';
 
 import Ionicon from 'react-native-vector-icons/Ionicons';
-import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import {Box} from 'native-base';
 
 import {ThemeContext} from 'contexts';
-
-import {Divider} from 'components/Divider';
-import {color} from 'native-base/lib/typescript/theme/styled-system';
 
 type HeaderProps = {
   title: string;

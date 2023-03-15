@@ -15,7 +15,6 @@ import {
   fieldStyles,
 } from '../../features/global/authentication/authStyles';
 import {ThemeContext} from 'contexts';
-import {Input} from 'native-base';
 
 // field type enum
 export enum FieldType {
@@ -37,16 +36,16 @@ export enum InputAppearance {
 
 // props type
 type TextFieldProps = TextInputProps & {
-  placeHolder: string;
-  value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
+  // placeHolder: string;
+  // value: string;
+  // setValue: React.Dispatch<React.SetStateAction<string>>;
   fieldType: FieldType;
   focusedField: FieldType;
   setFocusedField: React.Dispatch<React.SetStateAction<FieldType>>;
-  secureEntry?: boolean;
+  // secureEntry?: boolean;
   icon?: React.ReactNode;
-  autoFocus?: boolean;
-  maxLength?: number;
+  // autoFocus?: boolean;
+  // maxLength?: number;
   appearance?: InputAppearance;
   containerStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
@@ -54,19 +53,22 @@ type TextFieldProps = TextInputProps & {
 
 export const TextField = memo(
   ({
+    // Native textinput props
     editable,
-    placeHolder,
+    placeholder,
     value,
-    setValue,
-    fieldType,
-    focusedField,
-    setFocusedField,
-    secureEntry = false,
+    onChangeText,
+    onEndEditing,
+    secureTextEntry = false,
     icon,
     autoFocus = false,
     maxLength = 50,
+
+    // Custom props
+    fieldType,
+    focusedField,
+    setFocusedField,
     appearance = InputAppearance.Square,
-    onEndEditing,
     containerStyle,
     textStyle,
   }: TextFieldProps) => {
@@ -91,9 +93,9 @@ export const TextField = memo(
         <TextInput
           editable={editable}
           maxLength={maxLength}
-          secureTextEntry={secureEntry}
+          secureTextEntry={secureTextEntry}
           value={value}
-          onChangeText={setValue}
+          onChangeText={onChangeText}
           onFocus={() => {
             setFocusedField(fieldType);
           }}
@@ -102,12 +104,14 @@ export const TextField = memo(
             setFocusedField(FieldType.None);
           }}
           autoFocus={autoFocus}
-          placeholder={placeHolder}
+          placeholder={placeholder}
           placeholderTextColor={theme.colors.gray[400]}
           style={[
             generalStyles(theme).text,
             {
               flex: 1,
+              // clear extra-padding on android devices
+              padding: 0,
             },
             fieldStyles(theme, focusedField === fieldType).fieldText,
             textStyle,

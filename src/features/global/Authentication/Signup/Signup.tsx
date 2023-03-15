@@ -37,7 +37,7 @@ import {
   ComplexityCheckErrorCode,
 } from 'utils/passwordComplexityCheck';
 import {
-  createUserWithCredentials,
+  createUserEmailPassword,
   newUserEmailPasswordLogin,
 } from 'services/fireBaseAuth';
 import {validateEmail} from 'utils/validateEmail';
@@ -149,9 +149,9 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
       {setEmail && (
         <View style={[{marginBottom: 24}]}>
           <TextField
-            placeHolder="Email"
+            placeholder="Email"
             value={email}
-            setValue={setEmail}
+            onChangeText={setEmail}
             fieldType={FieldType.Email}
             focusedField={focusedField}
             setFocusedField={setFocusedField}
@@ -193,9 +193,9 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
       {/* Username */}
       <View style={[{marginBottom: 24}]}>
         <TextField
-          placeHolder="Username (optional)"
+          placeholder="Username (optional)"
           value={username}
-          setValue={setUsername}
+          onChangeText={setUsername}
           fieldType={FieldType.Username}
           focusedField={focusedField}
           setFocusedField={setFocusedField}
@@ -217,13 +217,13 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
       {setPassword && (
         <View style={[{marginBottom: 24}]}>
           <TextField
-            placeHolder="Password"
+            placeholder="Password"
             value={password}
-            setValue={setPassword}
+            onChangeText={setPassword}
             fieldType={FieldType.Password}
             focusedField={focusedField}
             setFocusedField={setFocusedField}
-            secureEntry={!passwordShown}
+            secureTextEntry={!passwordShown}
             icon={
               <Pressable onPress={() => setPasswordShown(!passwordShown)}>
                 <FeatherIcon
@@ -279,13 +279,13 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
       <View style={[{marginBottom: 32}]}>
         <TextField
           editable={passwordValidity === Validity.Valid}
-          placeHolder="Confirm Password"
+          placeholder="Confirm Password"
           value={confirmPassword}
-          setValue={setConfirmPassword}
+          onChangeText={setConfirmPassword}
           fieldType={FieldType.ConfirmPassword}
           focusedField={focusedField}
           setFocusedField={setFocusedField}
-          secureEntry={!passwordShown}
+          secureTextEntry={!passwordShown}
           icon={
             <Pressable
               onPress={() => setPasswordShown(!passwordShown)}
@@ -387,7 +387,7 @@ const InfoForm = memo(({onPress}: {onPress: () => void}) => {
             disabled={!isValidForSignUp}
             onPress={async () => {
               // create new user
-              await createUserWithCredentials(email, password);
+              await createUserEmailPassword(email, password);
               onPress();
             }}
             containerStyle={{

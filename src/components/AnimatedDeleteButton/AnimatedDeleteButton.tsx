@@ -32,6 +32,7 @@ const AnimatedDeleteButton = ({
       },
       shadowOpacity: 0.15,
       shadowRadius: 10,
+      elevation: 10,
       position: 'absolute',
       left: '50%',
       transform: [{translateX: -theme.sizes[4]}],
