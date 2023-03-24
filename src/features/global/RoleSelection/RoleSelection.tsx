@@ -4,10 +4,12 @@ import {Text, View, StyleSheet} from 'react-native';
 
 // internal dependencies
 import {RoleSelectionProps} from 'navigators/navigation-types';
-import {ThemeContext} from 'contexts';
+import {ThemeContext, AuthContext} from 'contexts';
 import {Button} from 'components/Button';
+import auth from '@react-native-firebase/auth';
 
 export const RoleSelection = ({navigation}: RoleSelectionProps) => {
+  // context values
   const {theme} = useContext(ThemeContext);
 
   const styles = StyleSheet.create({
@@ -64,6 +66,12 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
         title="Recipient"
         onPress={() => {
           navigation.navigate('Recipient');
+        }}
+      />
+      <Button
+        title="Sign Out"
+        onPress={async () => {
+          await auth().signOut();
         }}
       />
     </View>

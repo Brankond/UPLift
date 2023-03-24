@@ -11,19 +11,23 @@ import {PlayButton} from './PlayButton';
 import {SwipeableRow} from './SwipableRow';
 import {ActionButton} from './ActionButton';
 import {TextDivider} from './TextDivider';
-import {TextField} from './TextField/TextField';
+import {TextField, FieldType, InputAppearance} from './TextField';
 import {SearchBar} from './SearchBar';
 import {Message, MessageType} from './Message';
+import {KeyboardDismissSafeAreaView} from './KeyboardDismissSafeAreaView';
 
 export {
   ActionButton,
   TextDivider,
   TextField,
+  FieldType,
+  InputAppearance,
   Button,
   Divider,
   Message,
   MessageType,
   Header,
+  KeyboardDismissSafeAreaView,
   SafeAreaContainer,
   AddButton,
   SaveButton,

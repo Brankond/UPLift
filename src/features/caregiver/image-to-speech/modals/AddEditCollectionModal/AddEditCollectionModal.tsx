@@ -15,77 +15,58 @@ import {v4} from 'uuid';
 // internal dependencies
 import {AddCollectionModalProps} from 'navigators/navigation-types';
 import {SaveButton} from 'components';
-import {ThemeContext} from 'contexts';
+import {AuthContext, ThemeContext} from 'contexts';
 import {useHideBottomTab} from 'hooks/useHideBottomTab';
 import {useAppSelector, useAppDispatch} from 'hooks';
 import {
+  Collection,
+  CollectionUpdate,
   collectionAdded,
   collectionUpdated,
   selectCollectionById,
 } from 'store/slices/collectionsSlice';
-import {
-  recipientUpdated,
-  selectRecipientById,
-} from 'store/slices/recipientsSlice';
 import {dimensions} from 'features/global/globalStyles';
-import pickImage from 'utils/pickImage';
+import pickSingleImage from 'utils/pickImage';
+import {AppDispatch} from 'store';
+import {CollectionNames, addDocument, updateDocument} from 'services/fireStore';
+import {FirebaseAuthTypes} from '@react-native-firebase/auth';
+
+/**
+ * Handles the logic for adding and editing collections
+ */
+const addCollection = (newCollection: Collection, dispatch: AppDispatch) => {
+  dispatch(collectionAdded(newCollection));
+};
+
+const updateCollection = (
+  id: string,
+  update: CollectionUpdate,
+  dispatch: AppDispatch,
+) => {
+  dispatch(collectionUpdated({id, changes: update}));
+};
 
 const AddEditCollectionModal = ({
   navigation,
   route,
 }: AddCollectionModalProps) => {
+  // context values
   const {theme} = useContext(ThemeContext);
+  const {user} = useContext(AuthContext);
 
   // route params
-  const recipient_id = route.params.recipient_id;
-  const collection_id = route.params?.collection_id;
-  const recipient = useAppSelector(state =>
-    selectRecipientById(state, recipient_id),
-  );
-  const collection = collection_id
-    ? useAppSelector(state => selectCollectionById(state, collection_id))
+  const recipientId = route.params.recipientId;
+  const collectionId = route.params?.collectionId;
+  const collection = collectionId
+    ? useAppSelector(state => selectCollectionById(state, collectionId))
     : undefined;
 
   // component states
   const [title, setTitle] = useState(collection ? collection.title : '');
-  const [cover, setCover] = useState(collection ? collection.cover_image : '');
+  const [cover, setCover] = useState(collection ? collection.cover : '');
 
   // redux
   const dispatch = useAppDispatch();
-
-  const addEditCollection = (title: string, recipient_id: string) => {
-    if (!collection) {
-      dispatch(
-        collectionAdded({
-          id: v4(),
-          cover_image: cover,
-          recipient_id: recipient_id,
-          title: title.length > 0 ? title : 'untitled',
-          set_count: 0,
-        }),
-      );
-      dispatch(
-        recipientUpdated({
-          id: recipient_id,
-          changes: {
-            collection_count: recipient
-              ? recipient.collection_count + 1
-              : undefined,
-          },
-        }),
-      );
-    } else {
-      dispatch(
-        collectionUpdated({
-          id: collection.id,
-          changes: {
-            cover_image: cover,
-            title: title.length > 0 ? title : 'untitled',
-          },
-        }),
-      );
-    }
-  };
 
   // onload effects
   useEffect(() => {
@@ -94,7 +75,28 @@ const AddEditCollectionModal = ({
       headerRight: () => (
         <SaveButton
           onPress={() => {
-            addEditCollection(title, recipient_id);
+            if (collection) {
+              const update: CollectionUpdate = {
+                title,
+                cover,
+              };
+              updateCollection(collectionId as string, update, dispatch);
+              updateDocument(
+                collectionId as string,
+                update,
+                CollectionNames.Categories,
+              );
+            } else {
+              const newCollection: Collection = {
+                id: v4(),
+                recipientId,
+                caregiverId: (user as FirebaseAuthTypes.User).uid,
+                title,
+                cover,
+              };
+              addCollection(newCollection, dispatch);
+              addDocument(newCollection, CollectionNames.Categories);
+            }
             navigation.goBack();
           }}
         />
@@ -134,9 +136,10 @@ const AddEditCollectionModal = ({
           marginBottom: theme.sizes[6],
         }}
         onPress={async () => {
-          const result = await pickImage();
-          if (result.canceled) return;
-          setCover(result.assets[0].uri);
+          const result = await pickSingleImage();
+          if (result) {
+            setCover(result);
+          }
         }}>
         <Text
           style={{
@@ -161,6 +164,7 @@ const AddEditCollectionModal = ({
           <TextInput
             value={title}
             onChangeText={setTitle}
+            placeholderTextColor={theme.colors.tintedGrey[500]}
             placeholder="Title"
             inputMode="text"
             style={[

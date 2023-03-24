@@ -6,13 +6,12 @@ import {RootState} from 'store';
 
 export interface Caregiver {
   id: string;
-  email: string;
-  contactNumber: string[];
-  username?: string;
-  firstName?: string;
-  lastName?: string;
-  avatar?: string;
-  recipientCount: number;
+  email: string | null;
+  contactNumber: string | null;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  avatar: string | null;
 }
 
 const caregiversAdapter = createEntityAdapter<Caregiver>();
@@ -38,9 +37,9 @@ export const {
 } = caregiversSlice.actions;
 
 export const {
-  selectAll: selectRecipients,
-  selectById: selectRecipientById,
-  selectIds: selectRecipientIds,
+  selectAll: selectCaregivers,
+  selectById: selectCaregiverById,
+  selectIds: selectCaregiverIds,
 } = caregiversAdapter.getSelectors((state: RootState) => state.caregivers);
 
 export default caregiversSlice.reducer;

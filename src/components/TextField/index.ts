@@ -1,3 +1,3 @@
-import {TextField} from 'native-base';
+import {TextField, FieldType, InputAppearance} from './TextField';
 
-export {TextField};
+export {TextField, FieldType, InputAppearance};

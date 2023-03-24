@@ -3,34 +3,73 @@ import {
   createSlice,
   createEntityAdapter,
   createSelector,
+  createAsyncThunk,
 } from '@reduxjs/toolkit';
 import {RootState} from 'store';
 
 // internal dependencies
+import {fetchDataArrById, DataTypes, CollectionNames} from 'services/fireStore';
 
-export interface IASet {
+export interface Set {
   id: string;
-  collection_id: string;
-  recipient_id: string;
-  image_title: string;
-  audio_title: string;
-  image_path: string; // change to path object
-  audio_path: string; // change to path object
+  collectionId: string;
+  recipientId: string;
+  caregiverId: string;
+  imageTitle: string;
+  audioTitle: string;
+  image: string;
+  audio: string;
 }
 
-const setsAdapter = createEntityAdapter<IASet>({
-  sortComparer: (a, b) => a.image_title.localeCompare(b.image_title),
+export interface SetUpdate {
+  imageTitle: string;
+  audioTitle: string;
+  image: string;
+  audio: string;
+}
+
+export const fetchSets = createAsyncThunk(
+  'sets/fetchSets',
+  async (id: string) => {
+    try {
+      const sets = await fetchDataArrById(
+        id,
+        CollectionNames.Sets,
+        DataTypes.caregiver,
+      );
+      return sets as unknown as Set[];
+    } catch (error) {
+      console.log('Error fetching set data: ', error);
+      return [];
+    }
+  },
+);
+
+const setsAdapter = createEntityAdapter<Set>({
+  sortComparer: (a, b) => a.imageTitle.localeCompare(b.imageTitle),
 });
 
 const setsSlice = createSlice({
   name: 'sets',
-  initialState: setsAdapter.getInitialState(),
+  initialState: setsAdapter.getInitialState({
+    status: 'idle',
+  }),
   reducers: {
     setAdded: setsAdapter.addOne,
     setUpdated: setsAdapter.updateOne,
     setRemoved: setsAdapter.removeOne,
     allSetsRemoved: setsAdapter.removeAll,
     manySetsRemoved: setsAdapter.removeMany,
+  },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchSets.pending, (state, _) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchSets.fulfilled, (state, action) => {
+        setsAdapter.setAll(state, action.payload);
+        state.status = 'loaded';
+      });
   },
 });
 
@@ -50,7 +89,7 @@ export const {
 
 export const selectSetsByIds = (ids: string[]) => {
   return createSelector(selectSets, sets => {
-    let o: IASet[] = [];
+    let o: Set[] = [];
     ids.forEach(id => {
       o = [...o, ...sets.filter(set => set.id === id)];
     });
@@ -60,13 +99,13 @@ export const selectSetsByIds = (ids: string[]) => {
 
 export const selectSetIdsByRecipientId = (id: string) => {
   return createSelector(selectSets, sets =>
-    sets.filter(set => set.recipient_id === id).map(set => set.id),
+    sets.filter(set => set.recipientId === id).map(set => set.id),
   );
 };
 
 export const selectSetsByCollectionId = (id: string) => {
   return createSelector(selectSets, sets =>
-    sets.filter(set => set.collection_id === id),
+    sets.filter(set => set.collectionId === id),
   );
 };
 
@@ -78,9 +117,9 @@ export const selectSetIdsByCollectionId = (id: string) => {
 
 export const selectSetsByCollectionIds = (ids: string[]) => {
   return createSelector(selectSets, sets => {
-    let o: IASet[] = [];
+    let o: Set[] = [];
     ids.forEach(id => {
-      o = [...o, ...sets.filter(set => set.collection_id === id)];
+      o = [...o, ...sets.filter(set => set.collectionId === id)];
     });
     return o;
   });
@@ -94,9 +133,9 @@ export const selectSetIdsByCollectionIds = (ids: string[]) => {
 
 export const selectSetsByRecipientIds = (ids: string[]) => {
   return createSelector(selectSets, sets => {
-    let o: IASet[] = [];
+    let o: Set[] = [];
     ids.forEach(id => {
-      o = [...o, ...sets.filter(set => set.recipient_id === id)];
+      o = [...o, ...sets.filter(set => set.recipientId === id)];
     });
     return o;
   });

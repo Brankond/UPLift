@@ -48,6 +48,16 @@ export const typography = (theme: ThemeType) => {
       fontSize: 14,
       color: theme.colors.primary[400],
     },
+    smEmphasizeTextPrimary: {
+      ...middleText,
+      fontSize: 14,
+      color: theme.colors.primary[400],
+    },
+    smEmphasizeTextShallow: {
+      ...middleText,
+      fontSize: 14,
+      color: theme.colors.tintedGrey[500],
+    },
     lgSecondaryText: {
       fontFamily,
       fontSize: 14,

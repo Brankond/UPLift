@@ -10,7 +10,6 @@ import {
   useWindowDimensions,
   Image,
 } from 'react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import TrackPlayer, {
   usePlaybackState,
   useTrackPlayerEvents,
@@ -80,7 +79,7 @@ const SectionHeader = ({title, onEditButtonPressed}: SectionHeaderProps) => {
 const IASet = ({navigation, route}: SetProps) => {
   const {width} = useWindowDimensions();
   const {theme} = useContext(ThemeContext);
-  const set_id = route.params.set_id;
+  const set_id = route.params.setId;
   const set = useSelector((state: RootState) => selectSetById(state, set_id));
 
   // audio effect
@@ -89,8 +88,8 @@ const IASet = ({navigation, route}: SetProps) => {
       (async () => {
         if (set) {
           await TrackPlayer.add({
-            url: set.audio_path,
-            title: set.audio_title,
+            url: set.audio,
+            title: set.audioTitle,
             artist: 'N.A.',
           });
         }
@@ -108,7 +107,7 @@ const IASet = ({navigation, route}: SetProps) => {
   useEffect(() => {
     navigation.setOptions({
       headerTitle: set
-        ? set.image_title.charAt(0).toUpperCase() + set.image_title.slice(1)
+        ? set.imageTitle.charAt(0).toUpperCase() + set.imageTitle.slice(1)
         : undefined,
     });
   }, []);
@@ -136,9 +135,9 @@ const IASet = ({navigation, route}: SetProps) => {
             title="image"
             onEditButtonPressed={() => {
               navigation.navigate('Add Set', {
-                recipient_id: undefined,
-                collection_id: undefined,
-                set_id: set_id,
+                recipientId: undefined,
+                collectionId: undefined,
+                setId: set_id,
                 editType: SetEditType.Image,
               });
             }}
@@ -151,7 +150,7 @@ const IASet = ({navigation, route}: SetProps) => {
             }}>
             <Image
               source={{
-                uri: set?.image_path,
+                uri: set?.image,
               }}
               style={{
                 flex: 1,
@@ -164,9 +163,9 @@ const IASet = ({navigation, route}: SetProps) => {
             title="audio"
             onEditButtonPressed={() => {
               navigation.navigate('Add Set', {
-                recipient_id: undefined,
-                collection_id: undefined,
-                set_id: set_id,
+                recipientId: undefined,
+                collectionId: undefined,
+                setId: set_id,
                 editType: SetEditType.Audio,
               });
             }}
@@ -192,7 +191,7 @@ const IASet = ({navigation, route}: SetProps) => {
                   color: theme.colors.light[50],
                   textTransform: 'capitalize',
                 }}>
-                {set.audio_title}
+                {set.audioTitle}
               </Text>
             </View>
           </View>

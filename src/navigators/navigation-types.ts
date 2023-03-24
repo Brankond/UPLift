@@ -2,10 +2,10 @@ import {StackScreenProps} from '@react-navigation/stack';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {CompositeScreenProps} from '@react-navigation/native';
 import {NavigatorScreenParams} from '@react-navigation/native';
-import {Relationship} from '../features/caregiver/settings/modals/AddEditEmergencyContact/relationships';
 
 export type RootStackParamList = {
   Login: undefined;
+  PhoneLogin: undefined;
   Signup: undefined;
   'Role Selection': undefined;
   Caregiver: undefined;
@@ -40,26 +40,26 @@ export enum SetEditType {
 export type ImageToSpeechStackParamList = {
   'Recipient Selection': undefined;
   'Collection Selection': {
-    recipient_first_name: string;
-    recipient_id: string;
+    recipientFirstName: string;
+    recipientId: string;
   };
   Gallery: {
-    recipient_id: string;
-    recipient_first_name: string;
-    collection_id: string;
-    collection_title: string;
+    recipientId: string;
+    recipientFirstName: string;
+    collectionId: string;
+    collectionTitle: string;
   };
   Set: {
-    set_id: string;
+    setId: string;
   };
   'Add Collection': {
-    recipient_id: string;
-    collection_id: string | undefined;
+    recipientId: string;
+    collectionId: string | undefined;
   };
   'Add Set': {
-    recipient_id: string | undefined;
-    collection_id: string | undefined;
-    set_id: string | undefined;
+    recipientId: string | undefined;
+    collectionId: string | undefined;
+    setId: string | undefined;
     editType: SetEditType | undefined;
   };
 };
@@ -71,14 +71,12 @@ export type ForumStackParamList = {
 export type SettingsStackParamList = {
   'Main Menu': undefined;
   'Recipient Profile': {
-    recipient_id: string;
+    recipientId: string;
   };
-  'Add Recipient': {
-    recipient_id: string | undefined;
-  };
+  'Add Recipient': undefined;
   'Add Contact': {
-    recipient_id: string;
-    contact_id: string | undefined;
+    recipientId: string;
+    contactId: string | undefined;
   };
   'Select Relationship': undefined;
 };
@@ -87,6 +85,10 @@ export type SettingsStackParamList = {
 
 // authentication
 export type LoginProps = StackScreenProps<RootStackParamList, 'Login'>;
+export type PhoneLoginProps = StackScreenProps<
+  RootStackParamList,
+  'PhoneLogin'
+>;
 export type SignupProps = StackScreenProps<RootStackParamList, 'Signup'>;
 
 // root stack

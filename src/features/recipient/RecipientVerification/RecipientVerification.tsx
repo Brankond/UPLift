@@ -87,7 +87,7 @@ const RecipientListItem = memo(
                 typography(theme).lgBodyTextDark,
                 {fontWeight: theme.fontWeights.semibold, marginLeft: 16},
               ]}>
-              {`${recipient.first_name} ${recipient.last_name}`}
+              {`${recipient.firstName} ${recipient.lastName}`}
             </Text>
           </View>
           {/* redirect button */}
@@ -192,9 +192,9 @@ const RecipientVerification = memo(() => {
   // filter recipients based on searchtext
   useEffect(() => {
     const filteredRecipients = recipients.filter(
-      ({first_name, last_name}) =>
-        first_name.toLowerCase().includes(searchText.toLowerCase().trim()) ||
-        last_name.toLowerCase().includes(searchText.toLowerCase().trim()),
+      ({firstName, lastName}) =>
+        firstName.toLowerCase().includes(searchText.toLowerCase().trim()) ||
+        lastName.toLowerCase().includes(searchText.toLowerCase().trim()),
     );
     // only update recipientsForDisplay when
     if (

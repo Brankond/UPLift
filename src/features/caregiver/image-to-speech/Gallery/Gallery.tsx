@@ -30,9 +30,9 @@ const Gallery = ({navigation, route}: GalleryProps) => {
   const {width} = useWindowDimensions();
   const {theme} = useContext(ThemeContext);
   const grid_dimension = (width - 2 * theme.sizes[4]) / 4;
-  const collection_id = route.params.collection_id;
-  const recipient_id = route.params.recipient_id;
-  const collection_title = route.params.collection_title;
+  const collection_id = route.params.collectionId;
+  const recipient_id = route.params.recipientId;
+  const collection_title = route.params.collectionTitle;
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSets, setSelectedSets] = useState<string[]>([]);
@@ -50,9 +50,9 @@ const Gallery = ({navigation, route}: GalleryProps) => {
           itemType="Set"
           addButtonOnPress={() => {
             navigation.navigate('Add Set', {
-              recipient_id: recipient_id,
-              collection_id: collection_id,
-              set_id: undefined,
+              recipientId: recipient_id,
+              collectionId: collection_id,
+              setId: undefined,
               editType: undefined,
             });
           }}
@@ -100,7 +100,7 @@ const Gallery = ({navigation, route}: GalleryProps) => {
                           }
                         }
                       : () => {
-                          navigation.navigate('Set', {set_id: item.id});
+                          navigation.navigate('Set', {setId: item.id});
                         }
                   }>
                   <View
@@ -108,10 +108,10 @@ const Gallery = ({navigation, route}: GalleryProps) => {
                       flex: 1,
                       backgroundColor: theme.colors.tintedGrey[300],
                     }}>
-                    {item.image_path.length > 0 && (
+                    {item.image.length > 0 && (
                       <Image
                         source={{
-                          uri: item.image_path,
+                          uri: item.image,
                         }}
                         style={{
                           flex: 1,

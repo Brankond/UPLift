@@ -19,7 +19,12 @@ import {useNavigation} from '@react-navigation/native';
 // internal dependencies
 import {ThemeContext} from 'contexts';
 import {LoginProps} from 'navigators/navigation-types';
-import {LoginErrors, emailPasswordLogin} from 'services/fireBaseAuth';
+import {
+  LoginErrors,
+  emailPasswordLogin,
+  googleLogin,
+  appleLogin,
+} from 'services/fireBaseAuth';
 import {ActionButton, Appearance} from 'components/ActionButton/ActionButton';
 import {
   TextField,
@@ -27,8 +32,12 @@ import {
   InputAppearance,
 } from 'components/TextField/TextField';
 import {TextDivider, Message, MessageType} from 'components';
-import {ExternalLogin} from '../components/ExternalLogin';
+import {
+  PasswordLessLogin,
+  PasswordLessLoginTypes,
+} from '../components/ExternalLogin';
 import {generalStyles, fieldStyles} from '../authStyles';
+import {layout, typography} from 'features/global/globalStyles';
 
 // login method enum
 enum LoginMethod {
@@ -125,19 +134,9 @@ const EmailLoginForm = memo(() => {
   return (
     <>
       {/* email */}
-      <View style={[{marginBottom: 20}]}>
-        <Text
-          style={[
-            generalStyles(theme).text,
-            {
-              marginBottom: 8,
-            },
-            fieldStyles(theme, focusedField === FieldType.Email).fieldText,
-          ]}>
-          Email
-        </Text>
+      <View style={[{marginBottom: 24}]}>
         <TextField
-          placeholder="Enter Email"
+          placeholder="Email"
           value={email}
           onChangeText={setEmail}
           fieldType={FieldType.Email}
@@ -160,6 +159,7 @@ const EmailLoginForm = memo(() => {
             />
           }
           autoFocus={true}
+          appearance={InputAppearance.Round}
         />
         {/* email related error messages */}
         {(loginError === LoginErrors.INVALID_EMAIL && (
@@ -200,45 +200,16 @@ const EmailLoginForm = memo(() => {
           ))}
       </View>
       {/* password */}
-      <View style={[{marginBottom: 36}]}>
-        <View
-          style={[
-            generalStyles(theme).row,
-            {
-              marginBottom: 8,
-              alignItems: 'flex-end',
-            },
-          ]}>
-          <Pressable>
-            <Text
-              style={[
-                generalStyles(theme).text,
-                fieldStyles(theme, focusedField === FieldType.Password)
-                  .fieldText,
-              ]}>
-              Password
-            </Text>
-          </Pressable>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                fontSize: 14,
-                textDecorationLine: 'underline',
-              },
-              fieldStyles(theme, focusedField === FieldType.Password).fieldText,
-            ]}>
-            Forget Password?
-          </Text>
-        </View>
+      <View style={[{marginBottom: 16}]}>
         <TextField
-          placeholder="Enter Password"
+          placeholder="Password"
           value={password}
           onChangeText={setPassword}
           fieldType={FieldType.Password}
           focusedField={focusedField}
           setFocusedField={setFocusedField}
           secureTextEntry={!passwordShown}
+          appearance={InputAppearance.Round}
           icon={
             <Pressable onPress={() => setPasswordShown(!passwordShown)}>
               <FeatherIcon
@@ -272,12 +243,23 @@ const EmailLoginForm = memo(() => {
           />
         )}
       </View>
+      {/* forget password */}
+      <Text
+        style={[
+          typography(theme).mdBodyTextPrimary,
+          {
+            fontWeight: theme.fontWeights.medium,
+            textAlign: 'right',
+            marginBottom: 32,
+          },
+        ]}>
+        Forget password?
+      </Text>
       {/* loginButton */}
       <View style={[{marginBottom: 16}]}>
         <ActionButton
           text="Login"
           onPress={async () => {
-            console.log('Login Button Clicked');
             await emailPasswordLogin(
               email.toLowerCase(),
               password,
@@ -286,172 +268,6 @@ const EmailLoginForm = memo(() => {
           }}
         />
       </View>
-      {/* signup */}
-      <View
-        style={[
-          generalStyles(theme).row,
-          {
-            justifyContent: 'center',
-            marginBottom: 48,
-          },
-        ]}>
-        <Text
-          style={[
-            generalStyles(theme).text,
-            {
-              fontSize: 14,
-              fontWeight: theme.fontWeights.semibold,
-              marginRight: 8,
-            },
-          ]}>
-          Don't have an account?
-        </Text>
-        <Pressable
-          onPress={() => {
-            // navigate to signUp page
-            navigation.navigate('Signup');
-          }}>
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                fontSize: 14,
-                fontWeight: theme.fontWeights.semibold,
-                marginRight: 8,
-                textDecorationLine: 'underline',
-              },
-            ]}>
-            Sign up
-          </Text>
-        </Pressable>
-      </View>
-      {/* external login */}
-      <ExternalLogin />
-    </>
-  );
-});
-
-// OTP login form
-const OTPLoginForm = memo(() => {
-  // navigation
-  const navigation = useNavigation<LoginProps['navigation']>();
-
-  // context values
-  const {theme} = useContext(ThemeContext);
-
-  // states
-  const [focusedField, setFocusedField] = useState<FieldType>(FieldType.None);
-  const [number, setNumber] = useState<string>('');
-  const [isSent, setIsSent] = useState<boolean>(false);
-  const [otp, setOtp] = useState<string>('');
-
-  return (
-    <>
-      {/* Phone / OTP field */}
-      <View style={[{marginBottom: 36}]}>
-        {isSent && (
-          <>
-            <Text
-              style={[
-                generalStyles(theme).text,
-                {
-                  fontSize: 14,
-                  marginBottom: 8,
-                },
-              ]}>
-              {`A 6-digit code has been sent to your phone number`}
-            </Text>
-            <Text
-              style={[
-                generalStyles(theme).text,
-                {
-                  marginBottom: 12,
-                  fontWeight: theme.fontWeights.medium,
-                },
-              ]}>
-              {number}
-            </Text>
-          </>
-        )}
-        {/* input field */}
-        <TextField
-          placeholder={isSent ? 'Code' : 'Phone Number'}
-          maxLength={isSent ? 6 : 20}
-          value={isSent ? otp : number}
-          onChangeText={isSent ? setOtp : setNumber}
-          fieldType={isSent ? FieldType.OTP : FieldType.Phone}
-          focusedField={focusedField}
-          setFocusedField={setFocusedField}
-          icon={
-            isSent ? (
-              <MaterialIcon
-                name="lock"
-                color={
-                  focusedField === FieldType.OTP
-                    ? theme.colors.primary[400]
-                    : theme.colors.tintedGrey[700]
-                }
-                size={18}
-              />
-            ) : (
-              <OctIcon
-                name="device-mobile"
-                color={
-                  focusedField === FieldType.Phone
-                    ? theme.colors.primary[400]
-                    : theme.colors.tintedGrey[700]
-                }
-                size={18}
-              />
-            )
-          }
-          autoFocus={true}
-          appearance={InputAppearance.Round}
-        />
-        {/* info */}
-        {!isSent && (
-          <Text
-            style={[
-              generalStyles(theme).text,
-              {
-                fontSize: 12,
-                paddingHorizontal: 8,
-                marginTop: 8,
-              },
-              fieldStyles(theme, focusedField === FieldType.Password).fieldText,
-            ]}>
-            {`Provide your registered phone number`}
-          </Text>
-        )}
-      </View>
-      {/* Action button */}
-      <View
-        style={[
-          {
-            marginBottom: 16,
-          },
-        ]}>
-        <ActionButton
-          appearance={Appearance.Outlined}
-          text={isSent ? 'Resend' : 'Send Code'}
-          onPress={() => {
-            // send code
-            // sendCode(number)
-            setIsSent(true);
-            setFocusedField(FieldType.OTP);
-          }}
-        />
-      </View>
-      {/* login */}
-      {isSent && (
-        <ActionButton
-          appearance={Appearance.Stuffed}
-          text={'Login'}
-          onPress={() => {
-            navigation.navigate('Role Selection');
-          }}
-        />
-      )}
     </>
   );
 });
@@ -461,118 +277,119 @@ const Login = ({navigation, route}: LoginProps) => {
   const {theme} = useContext(ThemeContext);
 
   // states
-  const [mode, setMode] = useState<LoginMethod>(LoginMethod.Credentials);
+  // const [mode, setMode] = useState<LoginMethod>(LoginMethod.Credentials);
 
   // styles
-  const styles = (isSelected?: boolean) =>
-    StyleSheet.create({
-      text: {
-        fontFamily: theme.fonts.main,
-        fontSize: 14,
-      },
-      labelContainer: {
-        flex: 1,
-        paddingVertical: (isSelected && 10) || 8,
-        backgroundColor: theme.colors.primary[(isSelected && 400) || 50],
-      },
-      labelText: {
-        fontWeight: theme.fontWeights.medium,
-        textAlign: 'center',
-        fontSize: (isSelected && 14) || 12,
-        color:
-          (isSelected && theme.colors.light[50]) || theme.colors.primary[400],
-      },
-      formBodyShadow: {
-        shadowColor: theme.colors.tintedGrey[400],
-        shadowOffset: {
-          width: 0,
-          height: -10,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-      },
-    });
+  // const styles = (isSelected?: boolean) =>
+  //   StyleSheet.create({
+  //     text: {
+  //       fontFamily: theme.fonts.main,
+  //       fontSize: 14,
+  //     },
+  //     labelContainer: {
+  //       flex: 1,
+  //       paddingVertical: (isSelected && 10) || 8,
+  //       backgroundColor: theme.colors.primary[(isSelected && 400) || 50],
+  //     },
+  //     labelText: {
+  //       fontWeight: theme.fontWeights.medium,
+  //       textAlign: 'center',
+  //       fontSize: (isSelected && 14) || 12,
+  //       color:
+  //         (isSelected && theme.colors.light[50]) || theme.colors.primary[400],
+  //     },
+  //     formBodyShadow: {
+  //       shadowColor: theme.colors.tintedGrey[400],
+  //       shadowOffset: {
+  //         width: 0,
+  //         height: -10,
+  //       },
+  //       shadowOpacity: 0.2,
+  //       shadowRadius: 5,
+  //     },
+  //   });
 
   return (
     <SafeAreaView style={[generalStyles(theme).bodyContainer]}>
       <Pressable
-        style={[{flex: 1}]}
+        style={[{flex: 1, paddingHorizontal: 24, paddingTop: 32}]}
         onPress={() => {
           Keyboard.dismiss();
         }}>
-        {/* logo */}
-        <View
+        {/* Greeting Text */}
+        <Text
           style={[
+            typography(theme).lgHeadingText,
             {
-              width: 72,
-              height: 72,
-              borderRadius: 36,
-              backgroundColor: theme.colors.tintedGrey[300],
-              marginVertical: 32,
-              alignSelf: 'center',
-            },
-          ]}></View>
-        {/* login method switch */}
-        <View
-          style={[
-            {
-              flexDirection: 'row',
-              paddingHorizontal: 24,
-              alignItems: 'flex-end',
+              fontSize: 48,
             },
           ]}>
-          {/* email login tab */}
-          <Pressable
-            style={[styles(mode === LoginMethod.Credentials).labelContainer]}
-            onPress={() => {
-              setMode(LoginMethod.Credentials);
-            }}>
-            <Text
-              style={[
-                generalStyles(theme).text,
-                styles(mode === LoginMethod.Credentials).labelText,
-              ]}>
-              Email Login
-            </Text>
-          </Pressable>
-          {/* otp login tab */}
-          <Pressable
-            style={[styles(mode === LoginMethod.OTP).labelContainer]}
-            onPress={() => {
-              setMode(LoginMethod.OTP);
-            }}>
-            <Text
-              style={[
-                generalStyles(theme).text,
-                styles(mode === LoginMethod.OTP).labelText,
-              ]}>
-              OTP Login
-            </Text>
-          </Pressable>
-        </View>
+          Hi!
+        </Text>
+        <Text style={[typography(theme).mdHeadingText]}>
+          Let's login you in
+        </Text>
         {/* form body */}
         <View
           style={[
             {
-              flex: 1,
-              zIndex: 10,
-              backgroundColor: theme.colors.light[50],
-              paddingHorizontal: 24,
-              paddingTop: 32,
+              marginTop: 32,
             },
-            styles().formBodyShadow,
           ]}>
-          {mode === LoginMethod.Credentials && <EmailLoginForm />}
-          {mode === LoginMethod.OTP && <OTPLoginForm />}
+          <EmailLoginForm />
         </View>
-        {/* biometrics */}
         <View
           style={[
             {
-              paddingHorizontal: 24,
+              marginTop: 32,
             },
           ]}>
-          <BiometricsLogin />
+          <TextDivider text="OR" width="100%" />
+        </View>
+        {/* external login */}
+        <View style={[{marginTop: 24, gap: 18}]}>
+          <PasswordLessLogin
+            type={PasswordLessLoginTypes.Google}
+            onPress={async () => {
+              await googleLogin();
+            }}
+          />
+          <PasswordLessLogin
+            type={PasswordLessLoginTypes.Apple}
+            onPress={async () => {
+              await appleLogin();
+            }}
+          />
+          <PasswordLessLogin
+            type={PasswordLessLoginTypes.Phone}
+            onPress={() => {
+              navigation.navigate('PhoneLogin');
+            }}
+          />
+        </View>
+        {/* link to signup page */}
+        <View
+          style={[
+            {
+              flex: 1,
+              justifyContent: 'flex-end',
+              paddingBottom: 16,
+            },
+          ]}>
+          <View
+            style={[layout(theme).centered, {flexDirection: 'row', gap: 8}]}>
+            <Text style={[typography(theme).smEmphasizeTextShallow]}>
+              New to UPlift?
+            </Text>
+            <Pressable
+              onPress={() => {
+                navigation.navigate('Signup');
+              }}>
+              <Text style={[typography(theme).smEmphasizeTextPrimary]}>
+                Sign up
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </Pressable>
     </SafeAreaView>

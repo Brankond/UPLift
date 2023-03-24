@@ -1,13 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-  <!-- <provider android:authorities="com.facebook.app.FacebookContentProvider164559236421416"
-    android:name="com.facebook.FacebookContentProvider"
-    android:exported="true" /> -->
-
   <!-- Permissions -->
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.CAMERA" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
   <application
     android:name=".MainApplication"
@@ -15,6 +12,7 @@
     android:icon="@mipmap/ic_launcher"
     android:roundIcon="@mipmap/ic_launcher_round"
     android:allowBackup="false"
+    android:requestLegacyExternalStorage="true"
     android:theme="@style/AppTheme">
     <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />
     <meta-data android:name="com.facebook.sdk.ClientToken"

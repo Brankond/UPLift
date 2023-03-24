@@ -42,7 +42,7 @@ import {
 import {ThemeContext} from 'contexts';
 import {Divider, TickSelection} from 'components';
 import {fadeIn, fadeOut} from 'utils/animations';
-import pickImage from 'utils/pickImage';
+import pickSingleImage from 'utils/pickImage';
 import {generalStyles} from 'features/global/authentication/authStyles';
 import {dimensions} from 'features/global/globalStyles';
 
@@ -56,13 +56,13 @@ const RecipientProfileContext = createContext<RecipientProfileContextType>({
 
 // handlers
 const updatePhotoOnPress = async (dispatch: AppDispatch, id: string) => {
-  const result = await pickImage();
-  if (result.canceled) return;
+  const result = await pickSingleImage();
+  if (!result) return;
   dispatch(
     recipientUpdated({
       id,
       changes: {
-        avatar: result.assets[0].uri,
+        avatar: result,
       },
     }),
   );
@@ -79,9 +79,9 @@ const updateInformation = (
     recipientUpdated({
       id,
       changes: {
-        first_name: firstName,
-        last_name: lastName,
-        date_of_birth: birthday?.toString() || undefined,
+        firstName: firstName,
+        lastName: lastName,
+        birthday: birthday?.toString() || undefined,
       },
     }),
   );
@@ -592,10 +592,9 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
 
   const navigation = useNavigation<RecipientProfileProps['navigation']>();
 
-  const numbers = contact.contact_number.map((number, index) => (
-    <View>
+  const numbers = contact.contactNumbers.map((number, index) => (
+    <View key={index}>
       <Text
-        key={index}
         style={{
           fontSize: theme.sizes['3.5'],
           fontFamily: theme.fonts.main,
@@ -607,8 +606,8 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
     </View>
   ));
 
-  const emails = contact.email.map((email, index) => (
-    <View>
+  const emails = contact.emails.map((email, index) => (
+    <View key={index}>
       <Text
         key={index}
         style={{
@@ -658,14 +657,14 @@ const ContactItem = memo(({contact}: {contact: EmergencyContact}) => {
               textTransform: 'capitalize',
             },
           ]}>
-          {`${contact.first_name} ${contact.last_name}`}
+          {`${contact.firstName} ${contact.lastName}`}
         </Text>
         {!isContactsEditing && (
           <Pressable
             onPress={() => {
               navigation.navigate('Add Contact', {
-                recipient_id: recipientId,
-                contact_id: contact.id,
+                recipientId: recipientId,
+                contactId: contact.id,
               });
             }}
             style={{
@@ -779,7 +778,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   const {theme} = useContext(ThemeContext);
 
   // external data
-  const recipientId = route.params.recipient_id;
+  const recipientId = route.params.recipientId;
   const recipient = useAppSelector(state =>
     selectRecipientById(state, recipientId),
   );
@@ -795,15 +794,15 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   const [datePickerDisplayed, setDatePickerDisplayed] =
     useState<boolean>(false);
   const [firstName, setFirstName] = useState<string>(
-    recipient?.first_name || '',
+    recipient?.firstName || '',
   );
-  const [lastName, setLastName] = useState<string>(recipient?.last_name || '');
+  const [lastName, setLastName] = useState<string>(recipient?.lastName || '');
   const [infoSaveSignal, setInfoSaveSignal] = useState<boolean>(false);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [contactsDeleteSignal, setContactsDeleteSignal] =
     useState<boolean>(false);
   const [dob, setDob] = useState<Date | undefined>(
-    recipient?.date_of_birth ? new Date(recipient?.date_of_birth) : undefined,
+    recipient?.birthday ? new Date(recipient?.birthday) : undefined,
   );
 
   // effect
@@ -845,7 +844,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
           backgroundColor: theme.colors.light[50],
         }}>
         <Avatar uri={recipient.avatar} id={recipient.id} />
-        <Name firstName={recipient.first_name} lastName={recipient.last_name} />
+        <Name firstName={recipient.firstName} lastName={recipient.lastName} />
         {/* navigate to the recipient's view */}
         <View style={[{alignItems: 'center', marginBottom: 16}]}>
           <Pressable
@@ -867,7 +866,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
                   color: theme.colors.primary[400],
                 },
               ]}>
-              Enter {recipient.first_name}'s View
+              Enter {recipient.firstName}'s View
             </Text>
             <Ionicon
               name="ios-arrow-forward-circle"
@@ -911,8 +910,8 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
               setSaveSig={setContactsDeleteSignal}
               addOnPress={() => {
                 navigation.navigate('Add Contact', {
-                  recipient_id: recipientId,
-                  contact_id: undefined,
+                  recipientId: recipientId,
+                  contactId: undefined,
                 });
               }}
             />

@@ -43,7 +43,6 @@ const headerAddButtonOnPress = (
 ) => {
   navigation.navigate('Settings', {
     screen: 'Add Recipient',
-    params: {recipient_id: undefined},
   });
 };
 
@@ -53,7 +52,7 @@ const nonEditingSwipeableRowItemOnPress = (
 ) => {
   navigation.navigate('Settings', {
     screen: 'Recipient Profile',
-    params: {recipient_id},
+    params: {recipientId: recipient_id},
   });
 };
 

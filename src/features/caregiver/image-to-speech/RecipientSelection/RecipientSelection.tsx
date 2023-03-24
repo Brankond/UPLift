@@ -19,15 +19,18 @@ const unEditableSwipeableRowOnPress = (
   navigation.navigate('Image to Speech', {
     screen: 'Collection Selection',
     params: {
-      recipient_id,
-      recipient_first_name,
+      recipientId: recipient_id,
+      recipientFirstName: recipient_first_name,
     },
   });
 };
 
 const RecipientSelection = () => {
+  // navigation
   const parentNav =
     useNavigation<CaregiverBottomTabNavigatorProps['navigation']>();
+
+  // context
   const {theme} = useContext(ThemeContext);
 
   // redux
@@ -49,7 +52,7 @@ const RecipientSelection = () => {
                     unEditableSwipeableRowOnPress(
                       parentNav,
                       item.id,
-                      item.first_name,
+                      item.firstName,
                     );
                   }}
                 />

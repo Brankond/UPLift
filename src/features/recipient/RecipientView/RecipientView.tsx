@@ -1,5 +1,12 @@
 // external dependencies
-import {createContext, memo, useContext, useEffect, useState} from 'react';
+import {
+  createContext,
+  memo,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import {
   SafeAreaView,
   FlatList,
@@ -8,18 +15,30 @@ import {
   Image,
   Dimensions,
   Text,
+  InteractionManager,
 } from 'react-native';
 import {SvgXml} from 'react-native-svg';
 import PagerView from 'react-native-pager-view';
+import {useFocusEffect} from '@react-navigation/native';
+import TrackPlayer, {
+  Track,
+  usePlaybackState,
+  useTrackPlayerEvents,
+  Event,
+} from 'react-native-track-player';
 import {useAppSelector} from 'hooks';
 
 // internal dependencies
 import {RecipientViewProps} from 'navigators/navigation-types';
 import {
-  IACollection,
+  Collection,
   selectCollectionsByRecipientId,
 } from 'store/slices/collectionsSlice';
-import {selectSetsByCollectionId, selectSetById} from 'store/slices/setsSlice';
+import {
+  selectSetsByCollectionId,
+  selectSetById,
+  Set,
+} from 'store/slices/setsSlice';
 import {ThemeContext} from 'contexts';
 import {layout, typography} from 'features/global/globalStyles';
 
@@ -35,7 +54,7 @@ const RecipientViewContext = createContext<RecipientViewContextProps>({
   currentSetId: '',
 });
 
-const CollectionItem = memo(({collection}: {collection: IACollection}) => {
+const CollectionItem = memo(({collection}: {collection: Collection}) => {
   // context values
   const {theme} = useContext(ThemeContext);
   const {currentCollectionId, setCurrentCollectionId} =
@@ -50,7 +69,7 @@ const CollectionItem = memo(({collection}: {collection: IACollection}) => {
     setIsSelected(currentCollectionId === collection.id);
   }, [currentCollectionId, collection.id]);
 
-  const cover = collection.cover_image;
+  const cover = collection.cover;
 
   return (
     (setCurrentCollectionId && (
@@ -74,6 +93,7 @@ const CollectionItem = memo(({collection}: {collection: IACollection}) => {
             style={[
               {
                 flex: 1,
+                borderRadius: 12,
               },
             ]}
           />
@@ -83,7 +103,7 @@ const CollectionItem = memo(({collection}: {collection: IACollection}) => {
   );
 });
 
-const CollectionList = memo(({collections}: {collections: IACollection[]}) => {
+const CollectionList = memo(({collections}: {collections: Collection[]}) => {
   return (
     <FlatList
       data={collections}
@@ -132,7 +152,7 @@ const SetGallery = memo(({collectionId}: {collectionId: string}) => {
             ]}
             key={index}>
             <Image
-              source={{uri: set.image_path}}
+              source={{uri: set.image}}
               style={[
                 {
                   height: Dimensions.get('window').width - 16,
@@ -151,7 +171,7 @@ const SetGallery = memo(({collectionId}: {collectionId: string}) => {
                   marginTop: 12,
                 },
               ]}>
-              {set.image_title}
+              {set.imageTitle}
             </Text>
           </View>
         ))}
@@ -170,6 +190,32 @@ const PlayButton = memo(() => {
 
   // redux
   const set = useAppSelector(state => selectSetById(state, currentSetId));
+
+  // reset player progress upon reaching the end of the queue
+  useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
+    if (event.type === Event.PlaybackQueueEnded) {
+      TrackPlayer.seekTo(0);
+    }
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      const addTrack = InteractionManager.runAfterInteractions(async () => {
+        if (set) {
+          await TrackPlayer.add({
+            url: set.audio,
+            title: set.audioTitle,
+            artist: 'N.A.',
+          });
+        }
+      });
+
+      return async () => {
+        addTrack.cancel();
+        await TrackPlayer.reset();
+      };
+    }, [set]),
+  );
 
   return (
     <View
@@ -197,7 +243,12 @@ const PlayButton = memo(() => {
             shadowRadius: 8,
           },
         ]}>
-        <View
+        <Pressable
+          onPress={async () => {
+            // play audio
+            await TrackPlayer.seekTo(0);
+            await TrackPlayer.play();
+          }}
           style={[
             layout(theme).centered,
             {
@@ -206,17 +257,7 @@ const PlayButton = memo(() => {
             },
           ]}>
           <SvgXml xml={xml} />
-        </View>
-        {/* <View
-          style={[
-            {
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'black',
-              borderRadius: 192 / 2,
-            },
-          ]}></View> */}
+        </Pressable>
       </View>
     </View>
   );

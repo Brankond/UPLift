@@ -18,11 +18,12 @@ import {ThemeContext} from 'contexts';
 import {CollectionSelectionProps} from 'navigators/navigation-types';
 import {useAppSelector, useAppDispatch} from 'hooks';
 import {
-  IACollection,
+  Collection,
   selectCollections,
   manyCollectionsRemoved,
 } from 'store/slices/collectionsSlice';
 import {
+  selectSetsByCollectionId,
   selectSetIdsByCollectionIds,
   manySetsRemoved,
 } from 'store/slices/setsSlice';
@@ -35,20 +36,20 @@ import {
   TickSelection,
 } from 'components';
 
-interface CollectionProps {
-  collection: IACollection;
+interface CollectionCardProps {
+  collection: Collection;
   isEditing: boolean;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   selectedCollections: string[];
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const Collection = ({
+const CollectionCard = ({
   collection,
   isEditing,
   selectedCollections,
   setSelectedCollections,
-}: CollectionProps) => {
+}: CollectionCardProps) => {
   // import theme
   const {theme} = useContext(ThemeContext);
 
@@ -59,8 +60,13 @@ const Collection = ({
   // route parameters
   const route = useRoute<CollectionSelectionProps['route']>();
   const navigation = useNavigation<CollectionSelectionProps['navigation']>();
-  const recipient_id = route.params.recipient_id;
-  const recipient_first_name = route.params.recipient_first_name;
+  const recipient_id = route.params.recipientId;
+  const recipient_first_name = route.params.recipientFirstName;
+
+  // redux data
+  const setCount = useAppSelector(
+    selectSetsByCollectionId(collection.id),
+  ).length;
 
   return (
     <Pressable
@@ -73,8 +79,8 @@ const Collection = ({
       }}
       onLongPress={() => {
         navigation.navigate('Add Collection', {
-          recipient_id: recipient_id,
-          collection_id: collection.id,
+          recipientId: recipient_id,
+          collectionId: collection.id,
         });
       }}
       onPress={
@@ -90,10 +96,10 @@ const Collection = ({
             }
           : () => {
               navigation.navigate('Gallery', {
-                recipient_id: recipient_id,
-                recipient_first_name: recipient_first_name,
-                collection_id: collection.id,
-                collection_title: collection.title,
+                recipientId: recipient_id,
+                recipientFirstName: recipient_first_name,
+                collectionId: collection.id,
+                collectionTitle: collection.title,
               });
             }
       }>
@@ -108,9 +114,9 @@ const Collection = ({
           borderRadius: 16,
           marginBottom: theme.sizes['1.5'],
         }}>
-        {collection.cover_image.length > 0 && (
+        {collection.cover.length > 0 && (
           <Image
-            source={{uri: collection.cover_image}}
+            source={{uri: collection.cover}}
             style={{
               flex: 1,
               borderRadius: 16,
@@ -137,7 +143,7 @@ const Collection = ({
               color: theme.colors.tintedGrey[600],
               marginRight: 2,
             }}>
-            {collection.set_count}
+            {setCount}
           </Text>
           <SimpleLineIcon
             name="arrow-right"
@@ -155,8 +161,8 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
   const {theme} = useContext(ThemeContext);
 
   // route parameters
-  const recipient_id = route.params.recipient_id;
-  const recipient_first_name = route.params.recipient_first_name;
+  const recipient_id = route.params.recipientId;
+  const recipient_first_name = route.params.recipientFirstName;
 
   // animation
   const editingUiAnimatedVal = useRef(new Animated.Value(0)).current;
@@ -180,8 +186,8 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
           editingUiAnimatedVal={editingUiAnimatedVal}
           addButtonOnPress={() => {
             navigation.navigate('Add Collection', {
-              recipient_id: recipient_id,
-              collection_id: undefined,
+              recipientId: recipient_id,
+              collectionId: undefined,
             });
           }}
         />
@@ -194,7 +200,7 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
     selectCollections,
     collections => {
       return collections.filter(collection => {
-        return collection.recipient_id === recipient_id;
+        return collection.recipientId === recipient_id;
       });
     },
   );
@@ -230,7 +236,7 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
               data={collections}
               numColumns={2}
               renderItem={({item}) => (
-                <Collection
+                <CollectionCard
                   collection={item}
                   isEditing={isEditing}
                   setIsEditing={setIsEditing}

@@ -1,5 +1,5 @@
 // external dependencies
-import {useContext, useEffect, useState, useCallback} from 'react';
+import {useContext, useEffect, useState, useCallback, useMemo} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {
   SafeAreaView,
@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   Image,
   TextInput,
+  Keyboard,
   InteractionManager,
   Platform,
 } from 'react-native';
@@ -24,14 +25,22 @@ import TrackPlayer, {
 // internal dependencies
 import {AddSetModalProps, SetEditType} from 'navigators/navigation-types';
 import {useAppSelector, useAppDispatch} from 'hooks';
-import {selectSetById, setAdded, setUpdated} from 'store/slices/setsSlice';
-import {ThemeContext} from 'contexts';
+import {
+  Set,
+  SetUpdate,
+  selectSetById,
+  setAdded,
+  setUpdated,
+} from 'store/slices/setsSlice';
+import {ThemeContext, AuthContext} from 'contexts';
 import {Divider, SaveButton, PlayButton} from 'components';
-import {useHideBottomTab} from 'hooks/useHideBottomTab';
 import {dimensions} from 'features/global/globalStyles';
-import pickImage from 'utils/pickImage';
+import pickSingleImage from 'utils/pickImage';
 import pickDocument from 'utils/pickDocument';
 import {trimSuffix} from 'utils/trimSuffix';
+import {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {updateDocument, addDocument, CollectionNames} from 'services/fireStore';
+import {AppDispatch} from 'store';
 
 const updateStates = async (
   result: {
@@ -57,13 +66,44 @@ const updateStates = async (
   return track;
 };
 
+/**
+ * Handles creation or update of a set
+ */
+const addSet = (newSet: Set, dispatch: AppDispatch) => {
+  dispatch(setAdded(newSet));
+};
+
+const updateSet = (id: string, update: SetUpdate, dispatch: AppDispatch) => {
+  dispatch(
+    setUpdated({
+      id,
+      changes: update,
+    }),
+  );
+};
+
 const AddSetModal = ({navigation, route}: AddSetModalProps) => {
+  // context values
   const {width} = useWindowDimensions();
   const {theme} = useContext(ThemeContext);
-  const collectionId = route.params.collection_id;
-  const recipientId = route.params.recipient_id;
-  const setId = route.params.set_id;
+  const {user} = useContext(AuthContext);
+
+  // route parameters
+  const collectionId = route.params.collectionId;
+  const recipientId = route.params.recipientId;
+  const setId = route.params.setId;
   const editType = route.params.editType;
+
+  // memoized values
+  const isUpdate = useMemo(() => {
+    if (collectionId && recipientId && !setId && !editType) {
+      return false;
+    }
+    if (!collectionId && !recipientId && setId && editType) {
+      return true;
+    }
+    throw new Error('Invalid route parameters');
+  }, [collectionId, recipientId, setId, editType]);
 
   // redux
   const dispatch = useAppDispatch();
@@ -71,47 +111,16 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
     ? useAppSelector(state => selectSetById(state, setId))
     : undefined;
 
-  const addSet = (
-    image: string,
-    audio: string,
-    imageTitle: string,
-    audioTitle: string,
-    setId?: string,
-    collectionId?: string,
-    recipientId?: string,
-  ) => {
-    if (collectionId && recipientId) {
-      dispatch(
-        setAdded({
-          id: v4(),
-          collection_id: collectionId,
-          recipient_id: recipientId,
-          image_title: imageTitle,
-          audio_title: audioTitle,
-          image_path: image,
-          audio_path: audio,
-        }),
-      );
-    } else if (setId) {
-      dispatch(
-        setUpdated({
-          id: setId,
-          changes: {
-            image_title: imageTitle,
-            audio_title: audioTitle,
-            image_path: image,
-            audio_path: audio,
-          },
-        }),
-      );
-    }
-  };
-
   // component state
-  const [image, setImage] = useState(set ? set.image_path : '');
-  const [audio, setAudio] = useState(set ? set.audio_path : '');
-  const [imageTitle, setImageTitle] = useState(set ? set.image_title : '');
-  const [audioTitle, setAudioTitle] = useState(set ? set.audio_title : '');
+  const [image, setImage] = useState(set ? set.image : '');
+  const [audio, setAudio] = useState(set ? set.audio : '');
+  const [imageTitle, setImageTitle] = useState(set ? set.imageTitle : '');
+  const [audioTitle, setAudioTitle] = useState(set ? set.audioTitle : '');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const isSaveable = useMemo(() => {
+    return image.length > 0 && audio.length > 0 && imageTitle.length > 0;
+  }, [image, audio, imageTitle]);
 
   const playerState = usePlaybackState();
 
@@ -119,27 +128,60 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
   useEffect(() => {
     navigation.setOptions({
       headerTitle: 'Add Set',
-      headerRight: () => (
-        <SaveButton
-          onPress={() => {
-            addSet(
-              image,
-              audio,
-              imageTitle,
-              audioTitle,
-              setId,
-              collectionId,
-              recipientId,
-            );
-            navigation.goBack();
-          }}
-        />
-      ),
+      headerRight: () =>
+        isEditing ? (
+          // 'Done' button
+          <Pressable
+            onPress={() => {
+              Keyboard.dismiss();
+              setIsEditing(false);
+            }}
+            style={{
+              paddingRight: theme.sizes[4],
+            }}>
+            <Text
+              style={{
+                color: theme.colors.primary[400],
+                fontWeight: theme.fontWeights.semibold,
+              }}>
+              Done
+            </Text>
+          </Pressable>
+        ) : (
+          <SaveButton
+            disabled={!isSaveable}
+            onPress={() => {
+              if (isUpdate) {
+                const update: SetUpdate = {
+                  image,
+                  audio,
+                  imageTitle,
+                  audioTitle,
+                };
+                updateSet(setId as string, update, dispatch);
+                updateDocument(setId as string, update, CollectionNames.Sets);
+              } else {
+                const newSet: Set = {
+                  id: v4(),
+                  collectionId: collectionId as string,
+                  recipientId: recipientId as string,
+                  caregiverId: (user as FirebaseAuthTypes.User).uid,
+                  image,
+                  audio,
+                  imageTitle,
+                  audioTitle,
+                };
+                addSet(newSet, dispatch);
+                addDocument(newSet, CollectionNames.Sets);
+              }
+              navigation.goBack();
+            }}
+          />
+        ),
     });
-  }, [image, audio, imageTitle, audioTitle]);
+  }, [image, audio, imageTitle, audioTitle, isEditing]);
 
-  useHideBottomTab();
-
+  // reset player progress upon reaching the end of the queue
   useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
     if (event.type === Event.PlaybackQueueEnded) {
       TrackPlayer.seekTo(0);
@@ -151,8 +193,8 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
       const addTrack = InteractionManager.runAfterInteractions(async () => {
         if (set) {
           await TrackPlayer.add({
-            url: set.audio_path,
-            title: set.audio_title,
+            url: set.audio,
+            title: set.audioTitle,
             artist: 'N.A.',
           });
         }
@@ -171,168 +213,190 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
         flex: 1,
       }}>
       <ScrollView>
-        {(editType === undefined || editType === SetEditType.Image) && (
-          <View
-            style={{
-              marginTop: theme.sizes[8],
-              alignItems: 'center',
-              marginBottom: theme.sizes[8],
-            }}>
+        <Pressable
+          onPress={() => {
+            Keyboard.dismiss();
+          }}>
+          {(editType === undefined || editType === SetEditType.Image) && (
             <View
               style={{
-                width: width - theme.sizes[7],
-                height: width - theme.sizes[7],
-                backgroundColor: theme.colors.tintedGrey[300],
-                borderRadius: theme.sizes[6],
-              }}>
-              {image.length > 0 && (
-                <Image
-                  source={{uri: image}}
-                  style={{
-                    flex: 1,
-                    borderRadius: theme.sizes[6],
-                  }}
-                />
-              )}
-            </View>
-            <Pressable
-              style={{
-                marginTop: theme.sizes[3],
-                marginBottom: theme.sizes[6],
-              }}
-              onPress={async () => {
-                const result = await pickImage();
-                if (result.canceled) return;
-                setImage(result.assets[0].uri);
-              }}>
-              <Text
-                style={{
-                  fontSize: theme.sizes[3],
-                  color: theme.colors.primary[400],
-                }}>
-                {image.length > 0 ? 'Change Photo' : 'Add Photo'}
-              </Text>
-            </Pressable>
-            <View
-              style={{
-                width: '100%',
-                paddingHorizontal: theme.sizes['3.5'],
+                marginTop: theme.sizes[8],
+                alignItems: 'center',
+                marginBottom: theme.sizes[8],
               }}>
               <View
                 style={{
-                  paddingVertical: theme.sizes[4],
-                  borderRadius: theme.sizes[4],
-                  backgroundColor: theme.colors.light[50],
-                  paddingHorizontal: theme.sizes[5],
+                  width: width - theme.sizes[7],
+                  height: width - theme.sizes[7],
+                  backgroundColor: theme.colors.tintedGrey[300],
+                  borderRadius: theme.sizes[6],
                 }}>
-                <TextInput
-                  value={imageTitle}
-                  onChangeText={setImageTitle}
-                  placeholder="Image Title"
-                  inputMode="text"
-                  style={[
-                    Platform.OS === 'android' &&
-                      dimensions(theme).androidTextSize,
-                  ]}
-                />
+                {image.length > 0 && (
+                  <Image
+                    source={{uri: image}}
+                    style={{
+                      flex: 1,
+                      borderRadius: theme.sizes[6],
+                    }}
+                  />
+                )}
+              </View>
+              <Pressable
+                style={{
+                  marginTop: theme.sizes[3],
+                  marginBottom: theme.sizes[6],
+                }}
+                onPress={async () => {
+                  const result = await pickSingleImage();
+                  if (result) {
+                    setImage(result);
+                  }
+                }}>
+                <Text
+                  style={{
+                    fontSize: theme.sizes[3],
+                    color: theme.colors.primary[400],
+                  }}>
+                  {image.length > 0 ? 'Change Photo' : 'Add Photo'}
+                </Text>
+              </Pressable>
+              <View
+                style={{
+                  width: '100%',
+                  paddingHorizontal: theme.sizes['3.5'],
+                }}>
+                <View
+                  style={{
+                    paddingVertical: theme.sizes[4],
+                    borderRadius: theme.sizes[4],
+                    backgroundColor: theme.colors.light[50],
+                    paddingHorizontal: theme.sizes[5],
+                  }}>
+                  <TextInput
+                    value={imageTitle}
+                    placeholderTextColor={theme.colors.tintedGrey[500]}
+                    onFocus={() => {
+                      setIsEditing(true);
+                    }}
+                    onBlur={() => {
+                      Keyboard.dismiss();
+                      setIsEditing(false);
+                    }}
+                    onChangeText={setImageTitle}
+                    placeholder="Image Title"
+                    inputMode="text"
+                    style={[
+                      Platform.OS === 'android' &&
+                        dimensions(theme).androidTextSize,
+                    ]}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-        )}
-        {editType === undefined && (
-          <Divider
-            style={{
-              opacity: 0.2,
-              marginHorizontal: theme.sizes['3.5'],
-              marginVertical: 0,
-            }}
-          />
-        )}
-        {(editType === undefined || editType === SetEditType.Audio) && (
-          <View
-            style={{
-              marginTop: theme.sizes[8],
-              paddingHorizontal: theme.sizes['3.5'],
-              alignItems: 'center',
-            }}>
+          )}
+          {editType === undefined && (
+            <Divider
+              style={{
+                opacity: 0.2,
+                marginHorizontal: theme.sizes['3.5'],
+                marginVertical: 0,
+              }}
+            />
+          )}
+          {(editType === undefined || editType === SetEditType.Audio) && (
             <View
               style={{
-                width: '100%',
-                borderRadius: theme.sizes['9'],
-                padding: theme.sizes[3],
-                backgroundColor: theme.colors.primary[400],
-                flexDirection: 'row',
+                marginTop: theme.sizes[8],
+                paddingHorizontal: theme.sizes['3.5'],
                 alignItems: 'center',
-                justifyContent: 'space-between',
               }}>
               <View
                 style={{
+                  width: '100%',
+                  borderRadius: theme.sizes['9'],
+                  padding: theme.sizes[3],
+                  backgroundColor: theme.colors.primary[400],
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}>
-                <PlayButton state={playerState} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                  <PlayButton state={playerState} />
+                  <Text
+                    style={{
+                      fontWeight: theme.fontWeights.semibold,
+                      color: theme.colors.light[50],
+                      textTransform: 'capitalize',
+                    }}>
+                    {audioTitle.length > 0 ? audioTitle : 'Untitled'}
+                  </Text>
+                </View>
+              </View>
+              <Pressable
+                style={{
+                  marginTop: theme.sizes[3],
+                  marginBottom: theme.sizes[6],
+                }}
+                onPress={async () => {
+                  const result = await pickDocument();
+                  if (result) {
+                    const newTrack = await updateStates(
+                      result,
+                      setAudioTitle,
+                      setAudio,
+                    );
+                    await TrackPlayer.reset();
+                    await TrackPlayer.add(newTrack);
+                  }
+                }}>
                 <Text
                   style={{
-                    fontWeight: theme.fontWeights.semibold,
-                    color: theme.colors.light[50],
-                    textTransform: 'capitalize',
+                    fontSize: theme.sizes[3],
+                    color: theme.colors.primary[400],
                   }}>
-                  {audioTitle.length > 0 ? audioTitle : 'Untitled'}
+                  {audio.length > 0 ? 'Change Audio' : 'Add Audio'}
                 </Text>
-              </View>
-            </View>
-            <Pressable
-              style={{
-                marginTop: theme.sizes[3],
-                marginBottom: theme.sizes[6],
-              }}
-              onPress={async () => {
-                const result = await pickDocument();
-                if (result) {
-                  const newTrack = await updateStates(
-                    result,
-                    setAudioTitle,
-                    setAudio,
-                  );
-                  await TrackPlayer.reset();
-                  await TrackPlayer.add(newTrack);
-                }
-              }}>
-              <Text
-                style={{
-                  fontSize: theme.sizes[3],
-                  color: theme.colors.primary[400],
-                }}>
-                {audio.length > 0 ? 'Change Audio' : 'Add Audio'}
-              </Text>
-            </Pressable>
-            <View
-              style={{
-                width: '100%',
-                marginBottom: theme.sizes[6],
-              }}>
+              </Pressable>
               <View
                 style={{
-                  paddingVertical: theme.sizes[4],
-                  borderRadius: theme.sizes[4],
-                  backgroundColor: theme.colors.light[50],
-                  paddingHorizontal: theme.sizes[5],
+                  width: '100%',
+                  marginBottom: theme.sizes[6],
                 }}>
-                <TextInput
-                  value={audioTitle}
-                  onChangeText={setAudioTitle}
-                  placeholder="Audio Title"
-                  inputMode="text"
-                  style={[
-                    Platform.OS === 'android' &&
-                      dimensions(theme).androidTextSize,
-                  ]}
-                />
+                <View
+                  style={{
+                    paddingVertical: theme.sizes[4],
+                    borderRadius: theme.sizes[4],
+                    backgroundColor: theme.colors.light[50],
+                    paddingHorizontal: theme.sizes[5],
+                  }}>
+                  <TextInput
+                    value={audioTitle}
+                    placeholderTextColor={theme.colors.tintedGrey[500]}
+                    onFocus={() => {
+                      setIsEditing(true);
+                    }}
+                    onBlur={() => {
+                      Keyboard.dismiss();
+                      setIsEditing(false);
+                    }}
+                    onChangeText={setAudioTitle}
+                    placeholder="Audio Title"
+                    inputMode="text"
+                    style={[
+                      Platform.OS === 'android' &&
+                        dimensions(theme).androidTextSize,
+                    ]}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-        )}
+          )}
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );

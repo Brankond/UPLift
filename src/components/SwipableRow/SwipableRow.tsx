@@ -139,7 +139,7 @@ const SwipeableRow = ({
                   textTransform: 'capitalize',
                 },
               ]}>
-              {`${recipient.first_name} ${recipient.last_name}`}
+              {`${recipient.firstName} ${recipient.lastName}`}
             </Text>
             {/* location */}
             <View
@@ -219,11 +219,15 @@ const SwipeableRow = ({
             marginLeft: 16,
           }}>
           <Text
-            style={{
-              fontWeight: theme.fontWeights.semibold,
-              textTransform: 'capitalize',
-            }}>
-            {`${recipient.first_name} ${recipient.last_name}`}
+            style={[
+              generalStyles(theme).text,
+              {
+                fontSize: 14,
+                fontWeight: theme.fontWeights.semibold,
+                textTransform: 'capitalize',
+              },
+            ]}>
+            {`${recipient.firstName} ${recipient.lastName}`}
           </Text>
           <View
             style={{
@@ -235,17 +239,23 @@ const SwipeableRow = ({
               color={theme.colors.primary[400]}
             />
             <Text
-              style={{
-                fontWeight: theme.fontWeights.semibold,
-                fontSize: theme.fontSizes.xs,
-              }}>
+              style={[
+                generalStyles(theme).text,
+                {
+                  fontSize: 12,
+                  fontWeight: theme.fontWeights.semibold,
+                },
+              ]}>
               at
             </Text>
             <Text
-              style={{
-                fontSize: theme.fontSizes.xs,
-                marginLeft: theme.sizes['1.5'],
-              }}>
+              style={[
+                generalStyles(theme).text,
+                {
+                  fontSize: 12,
+                  marginLeft: theme.sizes['1.5'],
+                },
+              ]}>
               {recipient.location}
             </Text>
           </View>

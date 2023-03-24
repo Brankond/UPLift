@@ -1,14 +1,39 @@
+// external dependencies
 import * as ImagePicker from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 
-const pickImage = async () => {
-  let result = await ImagePicker.launchImageLibraryAsync({
+const pickSingleImage = async () => {
+  // ask for permission
+  let permissionResult =
+    await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (permissionResult.accessPrivileges === 'none') return null;
+
+  // pick image
+  let pickResult = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
     allowsEditing: true,
     aspect: [1, 1],
     quality: 1,
   });
 
-  return result;
+  if (pickResult.canceled) {
+    console.log('User cancelled image picker');
+    return null;
+  }
+
+  const assetId = pickResult.assets[0].assetId;
+  if (!assetId) {
+    console.log('Asset ID is not available');
+    return null;
+  }
+
+  let localUri = (await MediaLibrary.getAssetInfoAsync(assetId)).localUri;
+  if (!localUri) {
+    console.log('Local URI of this asset is not available');
+    return null;
+  }
+
+  return localUri;
 };
 
-export default pickImage;
+export default pickSingleImage;

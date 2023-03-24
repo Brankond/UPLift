@@ -12,64 +12,40 @@ import {
   Keyboard,
 } from 'react-native';
 import Picker from '@react-native-community/datetimepicker';
+import Animated, {SlideInDown, SlideOutDown} from 'react-native-reanimated';
 import {v4} from 'uuid';
 import {SvgXml} from 'react-native-svg';
 
 // internal dependencies
-import {ThemeContext} from 'contexts';
+import {ThemeContext, AuthContext} from 'contexts';
 import {AddRecipientModalProps} from 'navigators/navigation-types';
 import {Divider, SaveButton} from 'components';
-import {
-  recipientAdded,
-  recipientUpdated,
-  selectRecipientById,
-} from 'store/slices/recipientsSlice';
-import {useAppDispatch, useAppSelector} from 'hooks';
-import {useHideBottomTab} from 'hooks/useHideBottomTab';
-import pickImage from 'utils/pickImage';
+import {recipientAdded, Recipient} from 'store/slices/recipientsSlice';
+import {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {CollectionNames, addDocument} from 'services/fireStore';
+import {useAppDispatch} from 'hooks';
+import pickSingleImage from 'utils/pickImage';
 import {generalStyles} from 'features/global/authentication/authStyles';
 import {dimensions} from 'features/global/globalStyles';
+import {AppDispatch} from 'store';
 
-// handlers
-// commit changes to firebase
-// const commitAddRecipient = async (
-//   firstName: string,
-//   lastName: string,
-//   birthday: string | undefined,
-//   photo: string,
-// ) => {
-//   const recipientData = {
-//     name: {
-//       firstName,
-//       lastName,
-//     },
-//     birthday,
-//     photo,
-//   };
-
-//   await addDoc(collection(db, 'recipient'), recipientData);
-// };
+/**
+ * Handles the logic for adding and editing recipients
+ */
+const addRecipient = (newRecipient: Recipient, dispatch: AppDispatch) => {
+  dispatch(recipientAdded(newRecipient));
+};
 
 const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
+  // context values
   const {theme} = useContext(ThemeContext);
-
-  // route params
-  const recipient_id = route.params.recipient_id;
-  const recipient = recipient_id
-    ? useAppSelector(state => selectRecipientById(state, recipient_id))
-    : undefined;
+  const {user} = useContext(AuthContext);
 
   // component state
-  const [firstName, setFirstName] = useState(
-    recipient ? recipient.first_name : '',
-  );
-  const [lastName, setLastName] = useState(
-    recipient ? recipient.last_name : '',
-  );
-  const [birthday, setBirthDay] = useState<Date | undefined>(
-    recipient ? new Date(recipient.date_of_birth || '2001-01-01') : undefined,
-  );
-  const [photo, setPhoto] = useState(recipient ? recipient.avatar : '');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [birthday, setBirthDay] = useState<Date | undefined>(undefined);
+  const [photo, setPhoto] = useState<string>('');
   const [timePickerDisplayed, setTimePickerDisplayed] =
     useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -80,43 +56,8 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
 
   // redux
   const dispatch = useAppDispatch();
-  const addEditRecipient = (
-    firstName: string,
-    lastName: string,
-    birthday: Date | undefined,
-    avatar: string,
-    recipient_id: string | undefined,
-  ) => {
-    if (!recipient_id) {
-      dispatch(
-        recipientAdded({
-          id: v4(),
-          caregiver_id: '1',
-          first_name: firstName,
-          last_name: lastName,
-          avatar,
-          date_of_birth: birthday?.toString() || undefined,
-          location: '4221 West Side Avenue',
-          is_fallen: false,
-          collection_count: 0,
-        }),
-      );
-    } else {
-      dispatch(
-        recipientUpdated({
-          id: recipient_id,
-          changes: {
-            first_name: firstName,
-            last_name: lastName,
-            avatar,
-            date_of_birth: birthday?.toString() || undefined,
-          },
-        }),
-      );
-    }
-  };
 
-  // onload effects
+  // effects
   // configure header
   useEffect(() => {
     navigation.setOptions({
@@ -125,6 +66,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
         isEditing ? (
           <Pressable
             onPress={() => {
+              Keyboard.dismiss();
               setIsEditing(false);
             }}
             style={{
@@ -142,19 +84,18 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
           <SaveButton
             disabled={!(firstName.length > 0 || lastName.length > 0)}
             onPress={() => {
-              addEditRecipient(
+              const newRecipient: Recipient = {
+                id: v4(),
+                caregiverId: (user as FirebaseAuthTypes.User).uid,
                 firstName,
                 lastName,
-                birthday,
-                photo,
-                recipient_id,
-              );
-              // commitAddRecipient(
-              //   firstName,
-              //   lastName,
-              //   birthday?.toString(),
-              //   photo,
-              // );
+                avatar: photo,
+                birthday: birthday?.toString() || undefined,
+                location: '4221 West Side Avenue',
+                isFallen: false,
+              };
+              addRecipient(newRecipient, dispatch);
+              addDocument(newRecipient, CollectionNames.Recipients);
               navigation.goBack();
             }}
           />
@@ -170,71 +111,75 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
     }
   }, [isEditing]);
 
-  useHideBottomTab();
-
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        alignItems: 'center',
       }}>
-      {/* Avatar */}
-      <View
-        style={{
-          height: theme.sizes[40],
-          width: theme.sizes[40],
-          backgroundColor: theme.colors.tintedGrey[300],
-          borderRadius: theme.sizes[20],
-          marginTop: theme.sizes[8],
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        {photo.length > 0 ? (
-          <Image
-            source={{
-              uri: photo,
-            }}
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: theme.sizes[20],
-            }}
-          />
-        ) : (
-          <SvgXml
-            xml={`<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.light[50]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.light[50]}/></svg>`}
-            width="80%"
-            height="80%"
-          />
-        )}
-      </View>
-      {/* Add Photo */}
       <Pressable
-        style={{
-          marginTop: theme.sizes[3],
-          marginBottom: theme.sizes[6],
-        }}
-        onPress={async () => {
-          // dismiss opened keybord or time picker
-          setIsEditing(false);
-          const result = await pickImage();
-          if (!result.canceled) {
-            setPhoto(result.assets[0].uri);
-          }
+        style={[
+          {
+            flex: 1,
+            paddingHorizontal: 16,
+          },
+        ]}
+        onPress={() => {
+          Keyboard.dismiss(), setTimePickerDisplayed(false);
         }}>
-        <Text
+        {/* Avatar */}
+        <View
           style={{
-            fontSize: theme.sizes[3],
-            color: theme.colors.primary[400],
+            height: theme.sizes[40],
+            width: theme.sizes[40],
+            backgroundColor: theme.colors.tintedGrey[300],
+            borderRadius: theme.sizes[20],
+            marginTop: theme.sizes[8],
+            alignSelf: 'center',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-          {photo.length > 0 ? 'Change Photo' : 'Add Photo'}
-        </Text>
-      </Pressable>
-      <View
-        style={{
-          width: '100%',
-          paddingHorizontal: theme.sizes['3.5'],
-        }}>
+          {photo.length > 0 ? (
+            <Image
+              source={{
+                uri: photo,
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: theme.sizes[20],
+              }}
+            />
+          ) : (
+            <SvgXml
+              xml={`<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.light[50]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.light[50]}/></svg>`}
+              width="80%"
+              height="80%"
+            />
+          )}
+        </View>
+        {/* Add Photo */}
+        <Pressable
+          style={{
+            marginTop: theme.sizes[3],
+            marginBottom: theme.sizes[6],
+          }}
+          onPress={async () => {
+            // dismiss opened keybord or time picker
+            setIsEditing(false);
+            const result = await pickSingleImage();
+            if (result) {
+              setPhoto(result);
+            }
+          }}>
+          <Text
+            style={{
+              fontSize: theme.sizes[3],
+              color: theme.colors.primary[400],
+              textAlign: 'center',
+            }}>
+            {photo.length > 0 ? 'Change Photo' : 'Add Photo'}
+          </Text>
+        </Pressable>
         {/* First name */}
         <View
           style={{
@@ -324,14 +269,16 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             </Pressable>
           </View>
         </View>
-      </View>
+      </Pressable>
       {/* birthday picker */}
       {timePickerDisplayed && (
-        <View
+        <Animated.View
           style={{
             flex: 1,
             justifyContent: 'flex-end',
-          }}>
+          }}
+          entering={SlideInDown}
+          exiting={SlideOutDown}>
           <Picker
             value={birthday || new Date('2001-01-01')}
             mode="date"
@@ -341,13 +288,16 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
               setBirthDay(date);
 
               // hide timepicker ui upon dismissing the UI
-              if (event.type === 'dismissed' || event.type === 'set') {
+              if (
+                Platform.OS === 'android' &&
+                (event.type === 'dismissed' || event.type === 'set')
+              ) {
                 setTimePickerDisplayed(false);
                 setIsEditing(false);
               }
             }}
           />
-        </View>
+        </Animated.View>
       )}
     </SafeAreaView>
   );

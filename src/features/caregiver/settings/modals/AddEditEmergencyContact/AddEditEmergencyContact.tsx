@@ -23,18 +23,23 @@ import {v4} from 'uuid';
 import {useHeaderHeight} from '@react-navigation/elements';
 
 // internal dependencies
-import {ThemeContext} from 'contexts';
+import {AuthContext, ThemeContext} from 'contexts';
 import {AddContactModalProps} from 'navigators/navigation-types';
 import {selectContactById} from 'store/slices/emergencyContactsSlice';
 import {
+  EmergencyContact,
+  EmergencyContactUpdate,
   contactAdded,
   contactUpdated,
 } from 'store/slices/emergencyContactsSlice';
+import {CollectionNames, addDocument, updateDocument} from 'services/fireStore';
 import {RelationshipContext} from 'navigators/SettingsStackNavigator/SettingsStackNavigator';
 import {SaveButton, Divider} from 'components';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {dimensions, layout} from 'features/global/globalStyles';
 import {generalStyles} from 'features/global/authentication/authStyles';
+import {AppDispatch} from 'store';
+import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 
 // handlers
 const updateContactMethodEntryValue = (
@@ -65,6 +70,21 @@ enum ContactMethod {
   Phone,
   Email,
 }
+
+/**
+ * Handles creation and update of a contact
+ */
+const addContact = (newContact: EmergencyContact, dispatch: AppDispatch) => {
+  dispatch(contactAdded(newContact));
+};
+
+const updateContact = (
+  id: string,
+  update: EmergencyContactUpdate,
+  dispatch: AppDispatch,
+) => {
+  dispatch(contactUpdated({id, changes: update}));
+};
 
 const ContactMethodEntryItem = memo(
   ({
@@ -261,23 +281,25 @@ const ContactMethodEntryList = memo(({method}: {method: ContactMethod}) => {
 });
 
 const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
+  // context values
   const headerHeight = useHeaderHeight();
   const {theme} = useContext(ThemeContext);
+  const {user} = useContext(AuthContext);
 
   const dispatch = useAppDispatch();
-  const recipientId = route.params.recipient_id;
-  const contactId = route.params.contact_id;
+  const recipientId = route.params.recipientId;
+  const contactId = route.params.contactId;
   const contact = contactId
     ? useAppSelector(state => selectContactById(state, contactId))
     : undefined;
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [firstName, setFirstName] = useState<string>(contact?.first_name || '');
-  const [lastName, setLastName] = useState<string>(contact?.last_name || '');
+  const [firstName, setFirstName] = useState<string>(contact?.firstName || '');
+  const [lastName, setLastName] = useState<string>(contact?.lastName || '');
   const [contactNumbers, setContactNumbers] = useState<string[]>(
-    contact?.contact_number || [],
+    contact?.contactNumbers || [],
   );
-  const [emails, setEmails] = useState<string[]>(contact?.email || []);
+  const [emails, setEmails] = useState<string[]>(contact?.emails || []);
   const {
     relationship: contextRelationship,
     setRelationship: setContextRelationship,
@@ -325,38 +347,33 @@ const AddEditContactModal = ({navigation, route}: AddContactModalProps) => {
           </Pressable>
         ) : (
           <SaveButton
-            onPress={
-              contactId
-                ? () => {
-                    dispatch(
-                      contactUpdated({
-                        id: contactId,
-                        changes: {
-                          first_name: firstName,
-                          last_name: lastName,
-                          contact_number: contactNumbers,
-                          email: emails,
-                          relationship: relationship,
-                        },
-                      }),
-                    );
-                    navigation.goBack();
-                  }
-                : () => {
-                    dispatch(
-                      contactAdded({
-                        id: v4(),
-                        recipient_id: recipientId,
-                        first_name: firstName,
-                        last_name: lastName,
-                        contact_number: contactNumbers,
-                        email: emails,
-                        relationship: relationship,
-                      }),
-                    );
-                    navigation.goBack();
-                  }
-            }
+            onPress={() => {
+              if (contactId) {
+                const update: EmergencyContactUpdate = {
+                  firstName,
+                  lastName,
+                  relationship,
+                  contactNumbers,
+                  emails,
+                };
+                updateContact(contactId, update, dispatch);
+                updateDocument(contactId, update, CollectionNames.Contacts);
+              } else {
+                const newContact: EmergencyContact = {
+                  id: v4(),
+                  recipientId,
+                  caregiverId: (user as FirebaseAuthTypes.User).uid,
+                  firstName,
+                  lastName,
+                  relationship,
+                  contactNumbers,
+                  emails,
+                };
+                addContact(newContact, dispatch);
+                addDocument(newContact, CollectionNames.Contacts);
+              }
+              navigation.goBack();
+            }}
             disabled={
               !(
                 (firstName.length > 0 || lastName.length > 0) &&
