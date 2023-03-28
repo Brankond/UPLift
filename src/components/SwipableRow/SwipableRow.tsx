@@ -1,5 +1,5 @@
 // external dependencies
-import {useContext} from 'react';
+import {useContext, useMemo} from 'react';
 import {Animated, Pressable, Image, Text, View, StyleSheet} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {Swipeable, RectButton} from 'react-native-gesture-handler';
@@ -13,11 +13,20 @@ import {Recipient, recipientRemoved} from 'store/slices/recipientsSlice';
 import {
   selectCollectionIdsByRecipientId,
   manyCollectionsRemoved,
+  selectCollectionsByRecipientId,
 } from 'store/slices/collectionsSlice';
 import {
+  selectSetsByRecipientId,
   selectSetIdsByRecipientId,
   manySetsRemoved,
 } from 'store/slices/setsSlice';
+import {
+  selectContactIdsByRecipientId,
+  manyContactsRemoved,
+} from 'store/slices/emergencyContactsSlice';
+import {CollectionNames, removeDocuments} from 'services/fireStore';
+import {removeAsset, removeAssets} from 'services/cloudStorage';
+import {useAppSelector} from 'hooks';
 
 interface SwipeableRowProps {
   isEditable: boolean;
@@ -34,6 +43,7 @@ const SwipeableRow = ({
   onItemPress,
   tick,
 }: SwipeableRowProps) => {
+  // context values
   const {theme} = useContext(ThemeContext);
   const AnimatedIcon = Animated.createAnimatedComponent(MaterialIcon);
 
@@ -42,7 +52,15 @@ const SwipeableRow = ({
   const collectionIds = useSelector(
     selectCollectionIdsByRecipientId(recipient.id),
   );
+  const collections = useAppSelector(
+    selectCollectionsByRecipientId(recipient.id),
+  );
   const setIds = useSelector(selectSetIdsByRecipientId(recipient.id));
+  const sets = useAppSelector(selectSetsByRecipientId(recipient.id));
+  const contactIds = useSelector(selectContactIdsByRecipientId(recipient.id));
+
+  // states
+  const photoUrl = useMemo(() => recipient.photo.url, [recipient.photo.url]);
 
   // gesture handler
   const renderRightActions = (
@@ -60,10 +78,34 @@ const SwipeableRow = ({
           paddingHorizontal: theme.sizes[8],
           justifyContent: 'center',
         }}
-        onPress={() => {
+        onPress={async () => {
+          // remove data from store
           dispatch(recipientRemoved(recipient.id));
           dispatch(manyCollectionsRemoved(collectionIds));
           dispatch(manySetsRemoved(setIds));
+          dispatch(manyContactsRemoved(contactIds));
+
+          // remove data from firestore
+          removeDocuments(contactIds, CollectionNames.Contacts);
+          removeDocuments([recipient.id], CollectionNames.Recipients);
+          removeDocuments(setIds, CollectionNames.Sets);
+          removeDocuments(collectionIds, CollectionNames.Categories);
+
+          // remove data from cloud storage
+          await removeAsset(recipient.photo.cloudStoragePath);
+          const setsAssetsCloudStoragePaths: string[] = [];
+          for (const set of sets) {
+            setsAssetsCloudStoragePaths.push(set.image.cloudStoragePath);
+            setsAssetsCloudStoragePaths.push(set.audio.cloudStoragePath);
+          }
+          await removeAssets(setsAssetsCloudStoragePaths);
+          const collectionsCoversCloudStoragePaths: string[] = [];
+          for (const collection of collections) {
+            collectionsCoversCloudStoragePaths.push(
+              collection.cover.cloudStoragePath,
+            );
+          }
+          await removeAssets(collectionsCoversCloudStoragePaths);
         }}>
         <AnimatedIcon
           name="delete"
@@ -114,9 +156,9 @@ const SwipeableRow = ({
               borderRadius: 24,
               backgroundColor: theme.colors.tintedGrey[300],
             }}>
-            {recipient.avatar.length > 0 && (
+            {photoUrl.length > 0 && (
               <Image
-                source={{uri: recipient.avatar}}
+                source={{uri: photoUrl}}
                 style={{
                   width: '100%',
                   height: '100%',
@@ -203,9 +245,9 @@ const SwipeableRow = ({
             borderRadius: 24,
             backgroundColor: theme.colors.tintedGrey[300],
           }}>
-          {recipient.avatar.length > 0 && (
+          {photoUrl.length > 0 && (
             <Image
-              source={{uri: recipient.avatar}}
+              source={{uri: photoUrl}}
               style={{
                 width: '100%',
                 height: '100%',

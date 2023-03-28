@@ -9,7 +9,7 @@ export type RootStackParamList = {
   Signup: undefined;
   'Role Selection': undefined;
   Caregiver: undefined;
-  Recipient: undefined;
+  Recipient: NavigatorScreenParams<RecipientStackParamList>;
 };
 
 export type CaregiverStackParamList = {
@@ -33,8 +33,8 @@ export type CaregiverTabParamList = {
 };
 
 export enum SetEditType {
-  Image,
-  Audio,
+  Image = 'Image',
+  Audio = 'Audio',
 }
 
 export type ImageToSpeechStackParamList = {
@@ -50,6 +50,7 @@ export type ImageToSpeechStackParamList = {
     collectionTitle: string;
   };
   Set: {
+    recipientId: string;
     setId: string;
   };
   'Add Collection': {
@@ -57,7 +58,7 @@ export type ImageToSpeechStackParamList = {
     collectionId: string | undefined;
   };
   'Add Set': {
-    recipientId: string | undefined;
+    recipientId: string;
     collectionId: string | undefined;
     setId: string | undefined;
     editType: SetEditType | undefined;

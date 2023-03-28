@@ -9,18 +9,19 @@ import {RootState} from 'store';
 
 // internal dependencies
 import {fetchDataArrById, DataTypes, CollectionNames} from 'services/fireStore';
+import {Asset} from 'utils/types';
 
 export interface Collection {
   id: string;
   recipientId: string;
   caregiverId: string;
   title: string;
-  cover: string;
+  cover: Asset;
 }
 
 export interface CollectionUpdate {
   title: string;
-  cover: string;
+  cover: Asset;
 }
 
 export const fetchCollections = createAsyncThunk(

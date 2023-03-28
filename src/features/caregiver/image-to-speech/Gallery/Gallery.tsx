@@ -25,14 +25,16 @@ import {
   manySetsRemoved,
 } from 'store/slices/setsSlice';
 import {TickSelection} from 'components';
+import {CollectionNames, removeDocuments} from 'services/fireStore';
+import {removeAssets} from 'services/cloudStorage';
 
 const Gallery = ({navigation, route}: GalleryProps) => {
   const {width} = useWindowDimensions();
   const {theme} = useContext(ThemeContext);
   const grid_dimension = (width - 2 * theme.sizes[4]) / 4;
-  const collection_id = route.params.collectionId;
-  const recipient_id = route.params.recipientId;
-  const collection_title = route.params.collectionTitle;
+  const collectionId = route.params.collectionId;
+  const recipientId = route.params.recipientId;
+  const collectionTitle = route.params.collectionTitle;
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSets, setSelectedSets] = useState<string[]>([]);
@@ -50,8 +52,8 @@ const Gallery = ({navigation, route}: GalleryProps) => {
           itemType="Set"
           addButtonOnPress={() => {
             navigation.navigate('Add Set', {
-              recipientId: recipient_id,
-              collectionId: collection_id,
+              recipientId: recipientId,
+              collectionId: collectionId,
               setId: undefined,
               editType: undefined,
             });
@@ -65,17 +67,13 @@ const Gallery = ({navigation, route}: GalleryProps) => {
 
   // redux
   const dispatch = useDispatch();
-  const sets = useSelector(selectSetsByCollectionId(collection_id));
-
-  const deleteSelectedSets = (setsIds: string[]) => {
-    dispatch(manySetsRemoved(setsIds));
-  };
+  const sets = useSelector(selectSetsByCollectionId(collectionId));
 
   return (
     <SafeAreaContainer
       child={
         <>
-          <Header title={collection_title} />
+          <Header title={collectionTitle} />
           {sets.length > 0 ? (
             <FlatList
               data={sets}
@@ -100,7 +98,10 @@ const Gallery = ({navigation, route}: GalleryProps) => {
                           }
                         }
                       : () => {
-                          navigation.navigate('Set', {setId: item.id});
+                          navigation.navigate('Set', {
+                            recipientId,
+                            setId: item.id,
+                          });
                         }
                   }>
                   <View
@@ -108,16 +109,14 @@ const Gallery = ({navigation, route}: GalleryProps) => {
                       flex: 1,
                       backgroundColor: theme.colors.tintedGrey[300],
                     }}>
-                    {item.image.length > 0 && (
-                      <Image
-                        source={{
-                          uri: item.image,
-                        }}
-                        style={{
-                          flex: 1,
-                        }}
-                      />
-                    )}
+                    <Image
+                      source={{
+                        uri: item.image.url,
+                      }}
+                      style={{
+                        flex: 1,
+                      }}
+                    />
                   </View>
                   {isEditing && (
                     <TickSelection ticked={selectedSets.includes(item.id)} />
@@ -140,8 +139,29 @@ const Gallery = ({navigation, route}: GalleryProps) => {
           <AnimatedDeleteButton
             isEditing={isEditing}
             editingUiAnimatedVal={editingUiAnimatedVal}
-            onPress={() => {
-              deleteSelectedSets(selectedSets);
+            onPress={async () => {
+              // remove sets from redux
+              dispatch(manySetsRemoved(selectedSets));
+
+              // remove sets from firestore
+              await removeDocuments(selectedSets, CollectionNames.Sets);
+
+              // remove assets from cloud storage;
+              const selectedSetsAssetsCloudStoragePaths: string[] = [];
+              for (const setId of selectedSets) {
+                const set = sets.find(set => set.id === setId);
+                if (set) {
+                  selectedSetsAssetsCloudStoragePaths.push(
+                    set.image.cloudStoragePath,
+                  );
+                  selectedSetsAssetsCloudStoragePaths.push(
+                    set.audio.cloudStoragePath,
+                  );
+                }
+              }
+              await removeAssets(selectedSetsAssetsCloudStoragePaths);
+
+              // restore local state
               setSelectedSets([]);
             }}
           />

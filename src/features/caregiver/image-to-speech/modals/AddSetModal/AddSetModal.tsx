@@ -27,7 +27,8 @@ import {AddSetModalProps, SetEditType} from 'navigators/navigation-types';
 import {useAppSelector, useAppDispatch} from 'hooks';
 import {
   Set,
-  SetUpdate,
+  SetImageUpdate,
+  SetAudioUpdate,
   selectSetById,
   setAdded,
   setUpdated,
@@ -41,6 +42,15 @@ import {trimSuffix} from 'utils/trimSuffix';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {updateDocument, addDocument, CollectionNames} from 'services/fireStore';
 import {AppDispatch} from 'store';
+import {Asset} from 'utils/types';
+import {
+  SET_FOLDER,
+  removeAsset,
+  uploadAsset,
+  IMAGE_FOLDER,
+  AUDIO_FOLDER,
+} from 'services/cloudStorage';
+import {getFileNameFromLocalUri} from 'utils/getFileNameFromLocalUri';
 
 const updateStates = async (
   result: {
@@ -63,6 +73,7 @@ const updateStates = async (
     title: result.name,
     artist: 'N.A',
   };
+  console.log('New Track', track);
   return track;
 };
 
@@ -73,7 +84,11 @@ const addSet = (newSet: Set, dispatch: AppDispatch) => {
   dispatch(setAdded(newSet));
 };
 
-const updateSet = (id: string, update: SetUpdate, dispatch: AppDispatch) => {
+const updateSet = (
+  id: string,
+  update: SetImageUpdate | SetAudioUpdate,
+  dispatch: AppDispatch,
+) => {
   dispatch(
     setUpdated({
       id,
@@ -96,14 +111,14 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
 
   // memoized values
   const isUpdate = useMemo(() => {
-    if (collectionId && recipientId && !setId && !editType) {
+    if (collectionId && !setId && !editType) {
       return false;
     }
-    if (!collectionId && !recipientId && setId && editType) {
+    if (!collectionId && setId && editType) {
       return true;
     }
     throw new Error('Invalid route parameters');
-  }, [collectionId, recipientId, setId, editType]);
+  }, [collectionId, setId, editType]);
 
   // redux
   const dispatch = useAppDispatch();
@@ -112,22 +127,47 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
     : undefined;
 
   // component state
-  const [image, setImage] = useState(set ? set.image : '');
-  const [audio, setAudio] = useState(set ? set.audio : '');
+  const id = useMemo(() => v4(), []);
+  const image = useMemo(() => set?.image || null, [set]);
+  const audio = useMemo(() => set?.audio || null, [set]);
+  const [imageSource, setImageSource] = useState(image?.url || '');
+  const [audioSource, setAudioSource] = useState(audio?.url || '');
   const [imageTitle, setImageTitle] = useState(set ? set.imageTitle : '');
   const [audioTitle, setAudioTitle] = useState(set ? set.audioTitle : '');
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   const isSaveable = useMemo(() => {
-    return image.length > 0 && audio.length > 0 && imageTitle.length > 0;
-  }, [image, audio, imageTitle]);
+    if (isUpdate) {
+      if ((editType as SetEditType) === SetEditType.Image) {
+        return imageSource !== image?.url || imageTitle !== set?.imageTitle;
+      } else {
+        return audioSource !== audio?.url || audioTitle !== set?.audioTitle;
+      }
+    }
+
+    return (
+      imageSource.length > 0 && audioSource.length > 0 && imageTitle.length > 0
+    );
+  }, [
+    imageSource,
+    audioSource,
+    imageTitle,
+    audioTitle,
+    isUpdate,
+    set,
+    editType,
+  ]);
 
   const playerState = usePlaybackState();
 
   // onload effects
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: 'Add Set',
+      headerTitle: isUpdate
+        ? editType === SetEditType.Image
+          ? 'Edit Image'
+          : 'Edit Audio'
+        : 'Add Set',
       headerRight: () =>
         isEditing ? (
           // 'Done' button
@@ -150,24 +190,93 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
         ) : (
           <SaveButton
             disabled={!isSaveable}
-            onPress={() => {
+            onPress={async () => {
+              // construct new empty assets
+              const newImage: Asset = {
+                localUri: imageSource,
+                url: '',
+                cloudStoragePath: '',
+              };
+
+              const newAudio: Asset = {
+                localUri: audioSource,
+                url: '',
+                cloudStoragePath: '',
+              };
+
+              /**
+               * If in edit mode, only replace the selected type of asset, if not, replace both
+               */
               if (isUpdate) {
-                const update: SetUpdate = {
-                  image,
-                  audio,
-                  imageTitle,
-                  audioTitle,
-                };
-                updateSet(setId as string, update, dispatch);
-                updateDocument(setId as string, update, CollectionNames.Sets);
+                if ((editType as SetEditType) === SetEditType.Image) {
+                  await removeAsset((set as Set).image.cloudStoragePath);
+                  const {cloudStoragePath: imagePath, url: imageUrl} =
+                    await uploadAsset(
+                      recipientId as string,
+                      imageSource,
+                      `${SET_FOLDER}/${IMAGE_FOLDER}`,
+                      getFileNameFromLocalUri(imageSource),
+                    );
+                  newImage.cloudStoragePath = imagePath;
+                  newImage.url = imageUrl;
+                } else {
+                  await removeAsset((set as Set).audio.cloudStoragePath);
+                  const {cloudStoragePath: audioPath, url: audioUrl} =
+                    await uploadAsset(
+                      recipientId as string,
+                      audioSource,
+                      `${SET_FOLDER}/${AUDIO_FOLDER}`,
+                      getFileNameFromLocalUri(audioSource),
+                    );
+                  newAudio.cloudStoragePath = audioPath;
+                  newAudio.url = audioUrl;
+                }
+              } else {
+                const {cloudStoragePath: imagePath, url: imageUrl} =
+                  await uploadAsset(
+                    recipientId as string,
+                    imageSource,
+                    `${SET_FOLDER}/${IMAGE_FOLDER}`,
+                    getFileNameFromLocalUri(imageSource),
+                  );
+                newImage.cloudStoragePath = imagePath;
+                newImage.url = imageUrl;
+                const {cloudStoragePath: audioPath, url: audioUrl} =
+                  await uploadAsset(
+                    recipientId as string,
+                    audioSource,
+                    `${SET_FOLDER}/${AUDIO_FOLDER}`,
+                    getFileNameFromLocalUri(audioSource),
+                  );
+                newAudio.cloudStoragePath = audioPath;
+                newAudio.url = audioUrl;
+              }
+
+              // update redux and firestore
+              if (isUpdate) {
+                if ((editType as SetEditType) === SetEditType.Image) {
+                  const update: SetImageUpdate = {
+                    image: newImage,
+                    imageTitle,
+                  };
+                  updateSet(setId as string, update, dispatch);
+                  updateDocument(setId as string, update, CollectionNames.Sets);
+                } else {
+                  const update: SetAudioUpdate = {
+                    audio: newAudio,
+                    audioTitle,
+                  };
+                  updateSet(setId as string, update, dispatch);
+                  updateDocument(setId as string, update, CollectionNames.Sets);
+                }
               } else {
                 const newSet: Set = {
-                  id: v4(),
+                  id,
                   collectionId: collectionId as string,
                   recipientId: recipientId as string,
                   caregiverId: (user as FirebaseAuthTypes.User).uid,
-                  image,
-                  audio,
+                  image: newImage,
+                  audio: newAudio,
                   imageTitle,
                   audioTitle,
                 };
@@ -179,7 +288,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
           />
         ),
     });
-  }, [image, audio, imageTitle, audioTitle, isEditing]);
+  }, [imageSource, audioSource, imageTitle, audioTitle, isEditing]);
 
   // reset player progress upon reaching the end of the queue
   useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
@@ -190,11 +299,13 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('On start track added');
+      console.log('audioSource', audioSource);
       const addTrack = InteractionManager.runAfterInteractions(async () => {
         if (set) {
           await TrackPlayer.add({
-            url: set.audio,
-            title: set.audioTitle,
+            url: audioSource,
+            title: audioTitle,
             artist: 'N.A.',
           });
         }
@@ -231,14 +342,24 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                   backgroundColor: theme.colors.tintedGrey[300],
                   borderRadius: theme.sizes[6],
                 }}>
-                {image.length > 0 && (
+                {imageSource.length > 0 ? (
                   <Image
-                    source={{uri: image}}
+                    source={{uri: imageSource}}
                     style={{
                       flex: 1,
                       borderRadius: theme.sizes[6],
                     }}
                   />
+                ) : (
+                  imageSource.length > 0 && (
+                    <Image
+                      source={{uri: imageSource}}
+                      style={{
+                        flex: 1,
+                        borderRadius: theme.sizes[6],
+                      }}
+                    />
+                  )
                 )}
               </View>
               <Pressable
@@ -249,7 +370,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                 onPress={async () => {
                   const result = await pickSingleImage();
                   if (result) {
-                    setImage(result);
+                    setImageSource(result);
                   }
                 }}>
                 <Text
@@ -257,7 +378,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                     fontSize: theme.sizes[3],
                     color: theme.colors.primary[400],
                   }}>
-                  {image.length > 0 ? 'Change Photo' : 'Add Photo'}
+                  {imageSource.length > 0 ? 'Change Photo' : 'Add Photo'}
                 </Text>
               </Pressable>
               <View
@@ -348,7 +469,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                     const newTrack = await updateStates(
                       result,
                       setAudioTitle,
-                      setAudio,
+                      setAudioSource,
                     );
                     await TrackPlayer.reset();
                     await TrackPlayer.add(newTrack);
@@ -359,7 +480,7 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                     fontSize: theme.sizes[3],
                     color: theme.colors.primary[400],
                   }}>
-                  {audio.length > 0 ? 'Change Audio' : 'Add Audio'}
+                  {audioSource.length > 0 ? 'Change Audio' : 'Add Audio'}
                 </Text>
               </Pressable>
               <View

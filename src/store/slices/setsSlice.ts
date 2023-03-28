@@ -9,6 +9,7 @@ import {RootState} from 'store';
 
 // internal dependencies
 import {fetchDataArrById, DataTypes, CollectionNames} from 'services/fireStore';
+import {Asset} from 'utils/types';
 
 export interface Set {
   id: string;
@@ -17,15 +18,25 @@ export interface Set {
   caregiverId: string;
   imageTitle: string;
   audioTitle: string;
-  image: string;
-  audio: string;
+  image: Asset;
+  audio: Asset;
 }
 
 export interface SetUpdate {
   imageTitle: string;
   audioTitle: string;
-  image: string;
-  audio: string;
+  image: Asset;
+  audio: Asset;
+}
+
+export interface SetImageUpdate {
+  imageTitle: string;
+  image: Asset;
+}
+
+export interface SetAudioUpdate {
+  audioTitle: string;
+  audio: Asset;
 }
 
 export const fetchSets = createAsyncThunk(
@@ -97,9 +108,15 @@ export const selectSetsByIds = (ids: string[]) => {
   });
 };
 
-export const selectSetIdsByRecipientId = (id: string) => {
+export const selectSetsByRecipientId = (id: string) => {
   return createSelector(selectSets, sets =>
-    sets.filter(set => set.recipientId === id).map(set => set.id),
+    sets.filter(set => set.recipientId === id),
+  );
+};
+
+export const selectSetIdsByRecipientId = (id: string) => {
+  return createSelector(selectSetsByRecipientId(id), sets =>
+    sets.map(set => set.id),
   );
 };
 

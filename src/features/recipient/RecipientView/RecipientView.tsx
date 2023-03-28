@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from 'react';
 import {
   SafeAreaView,
@@ -69,7 +70,7 @@ const CollectionItem = memo(({collection}: {collection: Collection}) => {
     setIsSelected(currentCollectionId === collection.id);
   }, [currentCollectionId, collection.id]);
 
-  const cover = collection.cover;
+  const cover = useMemo(() => collection.cover, [collection]);
 
   return (
     (setCurrentCollectionId && (
@@ -87,9 +88,9 @@ const CollectionItem = memo(({collection}: {collection: Collection}) => {
             borderWidth: isSelected ? 1.5 : 0,
           },
         ]}>
-        {cover.length > 0 && (
+        {cover.url.length > 0 && (
           <Image
-            source={{uri: cover}}
+            source={{uri: cover.url}}
             style={[
               {
                 flex: 1,
@@ -152,7 +153,7 @@ const SetGallery = memo(({collectionId}: {collectionId: string}) => {
             ]}
             key={index}>
             <Image
-              source={{uri: set.image}}
+              source={{uri: set.image.url}}
               style={[
                 {
                   height: Dimensions.get('window').width - 16,
@@ -203,7 +204,7 @@ const PlayButton = memo(() => {
       const addTrack = InteractionManager.runAfterInteractions(async () => {
         if (set) {
           await TrackPlayer.add({
-            url: set.audio,
+            url: set.audio.url,
             title: set.audioTitle,
             artist: 'N.A.',
           });

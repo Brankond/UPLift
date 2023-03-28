@@ -1,5 +1,5 @@
 // external dependencies
-import {memo, useContext, useEffect, useState} from 'react';
+import {memo, useContext, useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -55,6 +55,8 @@ const RecipientListItem = memo(
     // avatar placeholder
     const avatarPlaceHolderXml = `<?xml version="1.0" ?><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title/><circle cx="12" cy="8" fill=${theme.colors.light[100]} r="4"/><path d="M20,19v1a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V19a6,6,0,0,1,6-6h4A6,6,0,0,1,20,19Z" fill=${theme.colors.light[100]}/></svg>`;
 
+    const photoUrl = useMemo(() => recipient.photo.url, [recipient.photo.url]);
+
     return (
       <View
         style={[
@@ -68,9 +70,9 @@ const RecipientListItem = memo(
           <View style={[layout(theme).rowSpaceBetween]}>
             {/* avatar */}
             <View style={[layout(theme).centered, styles.avatarContainer]}>
-              {recipient.avatar.length > 0 ? (
+              {photoUrl.length > 0 ? (
                 <Image
-                  source={{uri: recipient.avatar}}
+                  source={{uri: photoUrl}}
                   style={{width: '100%', height: '100%', borderRadius: 24}}
                 />
               ) : (

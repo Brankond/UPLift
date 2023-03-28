@@ -27,12 +27,17 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 
 // internal dependencies
-import {RecipientProfileProps} from 'navigators/navigation-types';
+import {
+  RecipientProfileProps,
+  CaregiverStackNavigatorProps,
+} from 'navigators/navigation-types';
 import {AppDispatch} from 'store';
 import {useAppDispatch, useAppSelector} from 'hooks';
 import {
   selectRecipientById,
   recipientUpdated,
+  RecipientPhotoUpdate,
+  RecipientBasicInfoUpdate,
 } from 'store/slices/recipientsSlice';
 import {
   EmergencyContact,
@@ -45,6 +50,14 @@ import {fadeIn, fadeOut} from 'utils/animations';
 import pickSingleImage from 'utils/pickImage';
 import {generalStyles} from 'features/global/authentication/authStyles';
 import {dimensions} from 'features/global/globalStyles';
+import {AVATARS_FOLDER, removeAsset, uploadAsset} from 'services/cloudStorage';
+import {
+  CollectionNames,
+  removeDocuments,
+  updateDocument,
+} from 'services/fireStore';
+import {Asset} from 'utils/types';
+import {getFileNameFromLocalUri} from 'utils/getFileNameFromLocalUri';
 
 // context
 type RecipientProfileContextType = {
@@ -55,40 +68,75 @@ const RecipientProfileContext = createContext<RecipientProfileContextType>({
 });
 
 // handlers
-const updatePhotoOnPress = async (dispatch: AppDispatch, id: string) => {
-  const result = await pickSingleImage();
-  if (!result) return;
+const updatePhoto = async (
+  dispatch: AppDispatch,
+  id: string,
+  cloudStoragePath: string,
+) => {
+  // get local uri from image picker
+  const localUri = await pickSingleImage();
+  if (!localUri) return;
+
+  // remove old asset from cloud storage
+  await removeAsset(cloudStoragePath);
+
+  // upload new asset to cloud storage
+  const {cloudStoragePath: newPath, url} = await uploadAsset(
+    id,
+    localUri,
+    AVATARS_FOLDER,
+    getFileNameFromLocalUri(localUri),
+  );
+
+  // construct update object
+  const update: RecipientPhotoUpdate = {
+    photo: {
+      url,
+      cloudStoragePath: newPath,
+      localUri,
+    },
+  };
+
+  // update recipient in store
   dispatch(
     recipientUpdated({
       id,
-      changes: {
-        avatar: result,
-      },
+      changes: update,
     }),
   );
+
+  // update recipient in firestore
+  await updateDocument(id, update, CollectionNames.Recipients);
 };
 
-const updateInformation = (
+const updateInformation = async (
   dispatch: AppDispatch,
   id: string,
   firstName: string,
   lastName: string,
   birthday: Date | undefined,
 ) => {
+  // construct update object
+  const update: RecipientBasicInfoUpdate = {
+    firstName,
+    lastName,
+    birthday: birthday?.toString() || undefined,
+  };
+
+  // update recipient in store
   dispatch(
     recipientUpdated({
       id,
-      changes: {
-        firstName: firstName,
-        lastName: lastName,
-        birthday: birthday?.toString() || undefined,
-      },
+      changes: update,
     }),
   );
+
+  // update recipient in firestore
+  await updateDocument(id, update, CollectionNames.Recipients);
 };
 
 // components
-const Avatar = memo(({id, uri}: {id: string; uri: string}) => {
+const Avatar = memo(({id, asset}: {id: string; asset: Asset}) => {
   const {theme} = useContext(ThemeContext);
   const dispatch = useAppDispatch();
 
@@ -104,10 +152,10 @@ const Avatar = memo(({id, uri}: {id: string; uri: string}) => {
           borderRadius: theme.sizes[16],
           backgroundColor: theme.colors.tintedGrey[300],
         }}>
-        {uri.length > 0 && (
+        {asset.url.length > 0 && (
           <Image
             style={{flex: 1, borderRadius: theme.sizes[16]}}
-            source={{uri: uri}}
+            source={{uri: asset.url}}
           />
         )}
       </View>
@@ -116,7 +164,7 @@ const Avatar = memo(({id, uri}: {id: string; uri: string}) => {
           marginBottom: theme.sizes[5],
         }}
         onPress={() => {
-          updatePhotoOnPress(dispatch, id);
+          updatePhoto(dispatch, id, asset.cloudStoragePath);
         }}>
         <Text
           style={{
@@ -125,7 +173,7 @@ const Avatar = memo(({id, uri}: {id: string; uri: string}) => {
             color: theme.colors.primary[400],
             textAlign: 'center',
           }}>
-          {uri.length > 0 ? 'Change Photo' : 'Add Photo'}
+          {asset.url.length > 0 ? 'Change Photo' : 'Add Photo'}
         </Text>
       </Pressable>
     </>
@@ -465,18 +513,6 @@ const InformationCard = memo(
 
     return (
       <>
-        <View style={[styles.roundedCornerFieldContaier]}>
-          <Text style={[styles.secondaryText, {marginBottom: 8}]}>
-            Recipient Id
-          </Text>
-          <Text
-            style={[styles.bodyTextVar2]}
-            onPress={() => {
-              Clipboard.setString(id);
-            }}>
-            {id}
-          </Text>
-        </View>
         <View
           style={{
             marginHorizontal: theme.sizes[4],
@@ -777,6 +813,10 @@ const ContactsCard = memo(({contacts}: {contacts: EmergencyContact[]}) => {
 const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   const {theme} = useContext(ThemeContext);
 
+  // navigation
+  const caregiverNavigation =
+    useNavigation<CaregiverStackNavigatorProps['navigation']>();
+
   // external data
   const recipientId = route.params.recipientId;
   const recipient = useAppSelector(state =>
@@ -818,7 +858,13 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
     }
     // delete selected contacts
     if (contactsDeleteSignal) {
+      // delete contacts from store
       dispatch(manyContactsRemoved(selectedContacts));
+
+      // remove contacts from firestore
+      removeDocuments(selectedContacts, CollectionNames.Contacts);
+
+      // restore loacl states
       setSelectedContacts([]);
       setContactsDeleteSignal(false);
     }
@@ -843,11 +889,19 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
           flex: 1,
           backgroundColor: theme.colors.light[50],
         }}>
-        <Avatar uri={recipient.avatar} id={recipient.id} />
+        <Avatar asset={recipient.photo} id={recipient.id} />
         <Name firstName={recipient.firstName} lastName={recipient.lastName} />
         {/* navigate to the recipient's view */}
         <View style={[{alignItems: 'center', marginBottom: 16}]}>
           <Pressable
+            onPress={() => {
+              caregiverNavigation.navigate('Recipient', {
+                screen: 'Recipient View',
+                params: {
+                  recipientId,
+                },
+              });
+            }}
             style={[
               generalStyles(theme).row,
               {

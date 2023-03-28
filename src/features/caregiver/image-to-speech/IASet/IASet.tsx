@@ -1,5 +1,5 @@
 // external dependencies
-import {useContext, useEffect, useCallback} from 'react';
+import {useContext, useEffect, useCallback, useMemo} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   SafeAreaView,
@@ -18,11 +18,12 @@ import TrackPlayer, {
 
 // internal dependencies
 import {SetEditType, SetProps} from 'navigators/navigation-types';
-import {RootState} from 'store';
 import {selectSetById} from 'store/slices/setsSlice';
 import {ThemeContext} from 'contexts';
 import {Divider, PlayButton} from 'components';
 import {useFocusEffect} from '@react-navigation/native';
+import {useAppDispatch, useAppSelector} from 'hooks';
+import {Set} from 'store/slices/setsSlice';
 
 interface SectionHeaderProps {
   title: string;
@@ -79,19 +80,24 @@ const SectionHeader = ({title, onEditButtonPressed}: SectionHeaderProps) => {
 const IASet = ({navigation, route}: SetProps) => {
   const {width} = useWindowDimensions();
   const {theme} = useContext(ThemeContext);
-  const set_id = route.params.setId;
-  const set = useSelector((state: RootState) => selectSetById(state, set_id));
+  const recipientId = route.params.recipientId;
+  const setId = route.params.setId;
+  const set = useAppSelector(state => selectSetById(state, setId));
+  const image = useMemo(() => (set as Set).image, [set]);
+  const audio = useMemo(() => (set as Set).audio, [set]);
 
   // audio effect
   useFocusEffect(
     useCallback(() => {
       (async () => {
         if (set) {
-          await TrackPlayer.add({
-            url: set.audio,
+          console.log('Audio Uri', set.audio);
+          const addResult = await TrackPlayer.add({
+            url: audio.url,
             title: set.audioTitle,
             artist: 'N.A.',
           });
+          console.log('Add track result', addResult);
         }
       })();
     }, [set]),
@@ -99,6 +105,7 @@ const IASet = ({navigation, route}: SetProps) => {
 
   useEffect(() => {
     const reset = navigation.addListener('blur', async () => {
+      console.log('blur effect executed');
       await TrackPlayer.reset();
     });
     return reset;
@@ -114,8 +121,13 @@ const IASet = ({navigation, route}: SetProps) => {
 
   const playerState = usePlaybackState();
 
+  useEffect(() => {
+    console.log(playerState);
+  }, [playerState]);
+
   useTrackPlayerEvents([Event.PlaybackQueueEnded], async event => {
     if (event.type === Event.PlaybackQueueEnded) {
+      console.log('PlaybackQueueEnded');
       TrackPlayer.seekTo(0);
     }
   });
@@ -135,9 +147,9 @@ const IASet = ({navigation, route}: SetProps) => {
             title="image"
             onEditButtonPressed={() => {
               navigation.navigate('Add Set', {
-                recipientId: undefined,
                 collectionId: undefined,
-                setId: set_id,
+                recipientId,
+                setId: setId,
                 editType: SetEditType.Image,
               });
             }}
@@ -150,7 +162,7 @@ const IASet = ({navigation, route}: SetProps) => {
             }}>
             <Image
               source={{
-                uri: set?.image,
+                uri: image.url,
               }}
               style={{
                 flex: 1,
@@ -163,9 +175,9 @@ const IASet = ({navigation, route}: SetProps) => {
             title="audio"
             onEditButtonPressed={() => {
               navigation.navigate('Add Set', {
-                recipientId: undefined,
                 collectionId: undefined,
-                setId: set_id,
+                recipientId,
+                setId: setId,
                 editType: SetEditType.Audio,
               });
             }}

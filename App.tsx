@@ -6,7 +6,7 @@ import {Provider} from 'react-redux';
 import auth from '@react-native-firebase/auth';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {NativeBaseProvider} from 'native-base';
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, {usePlaybackState} from 'react-native-track-player';
 
 // internal dependencies
 import store from 'store';
@@ -60,6 +60,12 @@ function App(): JSX.Element {
     (async () => {
       await TrackPlayer.setupPlayer();
     })();
+
+    return () => {
+      (async () => {
+        await TrackPlayer.reset();
+      })();
+    };
   }, []);
 
   // initialize authentication context

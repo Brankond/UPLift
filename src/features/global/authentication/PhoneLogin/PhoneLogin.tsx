@@ -15,6 +15,7 @@ import {
   FieldType,
   InputAppearance,
 } from 'components';
+import Timer from 'utils/Timer';
 import {typography} from 'features/global/globalStyles';
 
 const PhoneLogin = memo(() => {
@@ -28,6 +29,13 @@ const PhoneLogin = memo(() => {
   const [confirmationFunc, setConfirmationFunc] =
     useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
   const [otp, setOtp] = useState<string>('');
+
+  // timer
+  const timer = new Timer(60000, () => {
+    setIsSent(false);
+    setConfirmationFunc(null);
+    console.log('Timer expired');
+  });
 
   return (
     <KeyboardDismissSafeAreaView
@@ -119,6 +127,9 @@ const PhoneLogin = memo(() => {
             // send verification SMS
             const confirmationFunc = await auth().signInWithPhoneNumber(number);
             setConfirmationFunc(confirmationFunc);
+
+            // start timer
+            timer.start();
           } else {
             // verify OTP
             try {

@@ -1,5 +1,5 @@
 // external dependencies
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState, useMemo} from 'react';
 import {
   Text,
   View,
@@ -20,12 +20,14 @@ import {useAppSelector, useAppDispatch} from 'hooks';
 import {
   Collection,
   selectCollections,
+  selectCollectionsByRecipientId,
   manyCollectionsRemoved,
 } from 'store/slices/collectionsSlice';
 import {
   selectSetsByCollectionId,
   selectSetIdsByCollectionIds,
   manySetsRemoved,
+  selectSetsByCollectionIds,
 } from 'store/slices/setsSlice';
 
 import {
@@ -35,6 +37,8 @@ import {
   AnimatedDeleteButton,
   TickSelection,
 } from 'components';
+import {CollectionNames, removeDocuments} from 'services/fireStore';
+import {removeAssets} from 'services/cloudStorage';
 
 interface CollectionCardProps {
   collection: Collection;
@@ -42,6 +46,10 @@ interface CollectionCardProps {
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   selectedCollections: string[];
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedCollectionsCoverCloudStoragePaths: string[];
+  setSelectedCollectionsCoverCloudStoragePaths: React.Dispatch<
+    React.SetStateAction<string[]>
+  >;
 }
 
 const CollectionCard = ({
@@ -49,6 +57,8 @@ const CollectionCard = ({
   isEditing,
   selectedCollections,
   setSelectedCollections,
+  selectedCollectionsCoverCloudStoragePaths,
+  setSelectedCollectionsCoverCloudStoragePaths,
 }: CollectionCardProps) => {
   // import theme
   const {theme} = useContext(ThemeContext);
@@ -60,13 +70,16 @@ const CollectionCard = ({
   // route parameters
   const route = useRoute<CollectionSelectionProps['route']>();
   const navigation = useNavigation<CollectionSelectionProps['navigation']>();
-  const recipient_id = route.params.recipientId;
-  const recipient_first_name = route.params.recipientFirstName;
+  const recipientId = route.params.recipientId;
+  const recipientFirstName = route.params.recipientFirstName;
 
   // redux data
   const setCount = useAppSelector(
     selectSetsByCollectionId(collection.id),
   ).length;
+
+  // states
+  const cover = useMemo(() => collection.cover, [collection]);
 
   return (
     <Pressable
@@ -79,13 +92,14 @@ const CollectionCard = ({
       }}
       onLongPress={() => {
         navigation.navigate('Add Collection', {
-          recipientId: recipient_id,
+          recipientId: recipientId,
           collectionId: collection.id,
         });
       }}
       onPress={
         isEditing
           ? () => {
+              // add item to selected collections array
               if (!selectedCollections.includes(collection.id)) {
                 setSelectedCollections([...selectedCollections, collection.id]);
               } else {
@@ -93,11 +107,23 @@ const CollectionCard = ({
                   selectedCollections.filter(id => id != collection.id),
                 );
               }
+
+              // add item to selected collections cover cloud storage paths array
+              if (
+                !selectedCollectionsCoverCloudStoragePaths.includes(
+                  cover.cloudStoragePath,
+                )
+              ) {
+                setSelectedCollectionsCoverCloudStoragePaths([
+                  ...selectedCollections,
+                  cover.cloudStoragePath,
+                ]);
+              }
             }
           : () => {
               navigation.navigate('Gallery', {
-                recipientId: recipient_id,
-                recipientFirstName: recipient_first_name,
+                recipientId: recipientId,
+                recipientFirstName: recipientFirstName,
                 collectionId: collection.id,
                 collectionTitle: collection.title,
               });
@@ -114,9 +140,9 @@ const CollectionCard = ({
           borderRadius: 16,
           marginBottom: theme.sizes['1.5'],
         }}>
-        {collection.cover.length > 0 && (
+        {cover.url.length > 0 && (
           <Image
-            source={{uri: collection.cover}}
+            source={{uri: cover.url}}
             style={{
               flex: 1,
               borderRadius: 16,
@@ -161,8 +187,8 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
   const {theme} = useContext(ThemeContext);
 
   // route parameters
-  const recipient_id = route.params.recipientId;
-  const recipient_first_name = route.params.recipientFirstName;
+  const recipientId = route.params.recipientId;
+  const recipientFirstName = route.params.recipientFirstName;
 
   // animation
   const editingUiAnimatedVal = useRef(new Animated.Value(0)).current;
@@ -171,7 +197,11 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
   // component states
   const initialCollections: string[] = [];
   const [selectedCollections, setSelectedCollections] =
-    useState(initialCollections);
+    useState<string[]>(initialCollections);
+  const [
+    selectedCollectionsCoverCloudStoragePaths,
+    setSelectedCollectionsCoverCloudStoragePaths,
+  ] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
 
   // onload effect
@@ -186,7 +216,7 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
           editingUiAnimatedVal={editingUiAnimatedVal}
           addButtonOnPress={() => {
             navigation.navigate('Add Collection', {
-              recipientId: recipient_id,
+              recipientId: recipientId,
               collectionId: undefined,
             });
           }}
@@ -195,28 +225,15 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
     });
   }, [isEditing, selectedCollections]);
 
-  // redux data
-  const selectCollectionByRecipientId = createSelector(
-    selectCollections,
-    collections => {
-      return collections.filter(collection => {
-        return collection.recipientId === recipient_id;
-      });
-    },
+  // redux
+  const collections = useAppSelector(
+    selectCollectionsByRecipientId(recipientId),
   );
-
-  const collections = useAppSelector(selectCollectionByRecipientId);
-  const sets = useAppSelector(selectSetIdsByCollectionIds(selectedCollections));
+  const setIds = useAppSelector(
+    selectSetIdsByCollectionIds(selectedCollections),
+  );
+  const sets = useAppSelector(selectSetsByCollectionIds(selectedCollections));
   const dispatch = useAppDispatch();
-
-  const deleteSelectedCollections = (
-    selectedCollectionIds: string[],
-    setIds: string[],
-  ) => {
-    dispatch(manyCollectionsRemoved(selectedCollectionIds));
-    dispatch(manySetsRemoved(setIds));
-    setSelectedCollections([]);
-  };
 
   return (
     <SafeAreaContainer
@@ -224,12 +241,11 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
         <>
           <Header
             title={
-              recipient_first_name.slice(-1) == 's'
-                ? `${recipient_first_name}' collections`
-                : `${recipient_first_name}'s collections`
+              recipientFirstName.slice(-1) == 's'
+                ? `${recipientFirstName}' collections`
+                : `${recipientFirstName}'s collections`
             }
           />
-
           {/* body (list display) */}
           {collections.length > 0 ? (
             <FlatList
@@ -242,6 +258,12 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
                   setIsEditing={setIsEditing}
                   selectedCollections={selectedCollections}
                   setSelectedCollections={setSelectedCollections}
+                  selectedCollectionsCoverCloudStoragePaths={
+                    selectedCollectionsCoverCloudStoragePaths
+                  }
+                  setSelectedCollectionsCoverCloudStoragePaths={
+                    setSelectedCollectionsCoverCloudStoragePaths
+                  }
                 />
               )}
             />
@@ -261,8 +283,36 @@ const CollectionSelection = ({navigation, route}: CollectionSelectionProps) => {
           <AnimatedDeleteButton
             isEditing={isEditing}
             editingUiAnimatedVal={editingUiAnimatedVal}
-            onPress={() => {
-              deleteSelectedCollections(selectedCollections, sets);
+            onPress={async () => {
+              // remove collection and corresponding sets from store
+              dispatch(manyCollectionsRemoved(selectedCollections));
+              dispatch(manySetsRemoved(setIds));
+
+              // remove data from firestore
+              await removeDocuments(
+                selectedCollections,
+                CollectionNames.Categories,
+              );
+              await removeDocuments(setIds, CollectionNames.Sets);
+
+              // remove data from cloud storage
+              // remove cover images
+              await removeAssets(selectedCollectionsCoverCloudStoragePaths);
+
+              // remove sets images and audio
+              const setsAssetsCloudStoragePaths: string[] = [];
+              for (const setId of setIds) {
+                const set = sets.find(set => set.id == setId);
+                if (set) {
+                  const imageCloudStoragePath = set.image.cloudStoragePath;
+                  const audioCloudStoragePath = set.audio.cloudStoragePath;
+                  setsAssetsCloudStoragePaths.push(imageCloudStoragePath);
+                  setsAssetsCloudStoragePaths.push(audioCloudStoragePath);
+                }
+              }
+              await removeAssets(setsAssetsCloudStoragePaths);
+
+              setSelectedCollections([]);
             }}
           />
         </>

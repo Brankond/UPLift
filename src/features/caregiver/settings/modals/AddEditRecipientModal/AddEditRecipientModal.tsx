@@ -1,6 +1,6 @@
 // external dependencies
 import 'react-native-get-random-values';
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -25,9 +25,11 @@ import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {CollectionNames, addDocument} from 'services/fireStore';
 import {useAppDispatch} from 'hooks';
 import pickSingleImage from 'utils/pickImage';
+import {AVATARS_FOLDER, uploadAsset} from 'services/cloudStorage';
 import {generalStyles} from 'features/global/authentication/authStyles';
 import {dimensions} from 'features/global/globalStyles';
 import {AppDispatch} from 'store';
+import {Asset} from 'utils/types';
 
 /**
  * Handles the logic for adding and editing recipients
@@ -36,7 +38,7 @@ const addRecipient = (newRecipient: Recipient, dispatch: AppDispatch) => {
   dispatch(recipientAdded(newRecipient));
 };
 
-const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
+const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
   // context values
   const {theme} = useContext(ThemeContext);
   const {user} = useContext(AuthContext);
@@ -45,10 +47,13 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [birthday, setBirthDay] = useState<Date | undefined>(undefined);
-  const [photo, setPhoto] = useState<string>('');
+  const [photoLocalUri, setPhotoLocalUri] = useState<string>('');
   const [timePickerDisplayed, setTimePickerDisplayed] =
     useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const id = useMemo(() => {
+    return v4();
+  }, []);
 
   // refs
   const firstNameInputRef = useRef<TextInput>(null);
@@ -83,25 +88,46 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
         ) : (
           <SaveButton
             disabled={!(firstName.length > 0 || lastName.length > 0)}
-            onPress={() => {
+            onPress={async () => {
+              // initialise an empty asset
+              const photoAsset: Asset = {
+                cloudStoragePath: '',
+                url: '',
+                localUri: photoLocalUri,
+              };
+
+              // if the user has picked a photo, upload it to cloud storage
+              if (photoLocalUri.length > 0) {
+                const {url, cloudStoragePath} = await uploadAsset(
+                  id,
+                  photoLocalUri,
+                  AVATARS_FOLDER,
+                  photoLocalUri.split('/').pop() as string,
+                );
+                photoAsset.cloudStoragePath = cloudStoragePath;
+                photoAsset.url = url;
+              }
+
+              // construct new recipient object
               const newRecipient: Recipient = {
-                id: v4(),
+                id,
                 caregiverId: (user as FirebaseAuthTypes.User).uid,
                 firstName,
                 lastName,
-                avatar: photo,
+                photo: photoAsset,
                 birthday: birthday?.toString() || undefined,
                 location: '4221 West Side Avenue',
-                isFallen: false,
               };
+
+              // add recipient to redux and firestore
               addRecipient(newRecipient, dispatch);
-              addDocument(newRecipient, CollectionNames.Recipients);
+              await addDocument(newRecipient, CollectionNames.Recipients);
               navigation.goBack();
             }}
           />
         ),
     });
-  }, [firstName, lastName, photo, birthday, isEditing]);
+  }, [firstName, lastName, photoLocalUri, birthday, isEditing]);
 
   // close datePicker when editing is finished
   useEffect(() => {
@@ -110,6 +136,11 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
       setTimePickerDisplayed(false);
     }
   }, [isEditing]);
+
+  // set new recipient id
+  useEffect(() => {
+    console.log('Recipient Id:', id);
+  }, [id]);
 
   return (
     <SafeAreaView
@@ -138,10 +169,10 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          {photo.length > 0 ? (
+          {photoLocalUri.length > 0 ? (
             <Image
               source={{
-                uri: photo,
+                uri: photoLocalUri,
               }}
               style={{
                 width: '100%',
@@ -168,7 +199,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
             setIsEditing(false);
             const result = await pickSingleImage();
             if (result) {
-              setPhoto(result);
+              setPhotoLocalUri(result);
             }
           }}>
           <Text
@@ -177,7 +208,7 @@ const AddEditRecipientModal = ({navigation, route}: AddRecipientModalProps) => {
               color: theme.colors.primary[400],
               textAlign: 'center',
             }}>
-            {photo.length > 0 ? 'Change Photo' : 'Add Photo'}
+            {photoLocalUri.length > 0 ? 'Change Photo' : 'Add Photo'}
           </Text>
         </Pressable>
         {/* First name */}

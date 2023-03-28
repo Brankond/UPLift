@@ -9,7 +9,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useMemo, useState} from 'react';
 import {v4} from 'uuid';
 
 // internal dependencies
@@ -30,6 +30,9 @@ import pickSingleImage from 'utils/pickImage';
 import {AppDispatch} from 'store';
 import {CollectionNames, addDocument, updateDocument} from 'services/fireStore';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
+import {Asset} from 'utils/types';
+import {COVERS_FOLDER, removeAsset, uploadAsset} from 'services/cloudStorage';
+import {getFileNameFromLocalUri} from 'utils/getFileNameFromLocalUri';
 
 /**
  * Handles the logic for adding and editing collections
@@ -62,8 +65,14 @@ const AddEditCollectionModal = ({
     : undefined;
 
   // component states
+  const id = useMemo(() => v4(), []);
+  const cover = useMemo(() => collection?.cover || undefined, [collection]);
   const [title, setTitle] = useState(collection ? collection.title : '');
-  const [cover, setCover] = useState(collection ? collection.cover : '');
+  const [coverSource, setCoverSource] = useState(cover ? cover.url : '');
+  const isEditSaveable = useMemo(
+    () => cover?.url !== coverSource || collection?.title !== title,
+    [cover, coverSource, collection, title],
+  );
 
   // redux
   const dispatch = useAppDispatch();
@@ -74,12 +83,42 @@ const AddEditCollectionModal = ({
       headerTitle: collection ? 'Edit Collection' : 'Add Collection',
       headerRight: () => (
         <SaveButton
-          onPress={() => {
+          disabled={!isEditSaveable}
+          onPress={async () => {
+            // create a new asset
+            const newCover: Asset = {
+              cloudStoragePath: '',
+              url: '',
+              localUri: coverSource,
+            };
+
+            // if a cover image is selected, upload it to cloud storage
+            if (coverSource.length > 0) {
+              // if previous cover image exists, delete it from cloud storage
+              if (cover) {
+                console.log(newCover);
+                await removeAsset(cover.cloudStoragePath);
+              }
+
+              // upload the new cover image to cloud storage
+              const {url, cloudStoragePath} = await uploadAsset(
+                recipientId,
+                coverSource,
+                COVERS_FOLDER,
+                getFileNameFromLocalUri(coverSource),
+              );
+              newCover.url = url;
+              newCover.cloudStoragePath = cloudStoragePath;
+            }
+
             if (collection) {
+              // construct the update object
               const update: CollectionUpdate = {
                 title,
-                cover,
+                cover: newCover,
               };
+
+              // update the collection in the store and firestore
               updateCollection(collectionId as string, update, dispatch);
               updateDocument(
                 collectionId as string,
@@ -87,13 +126,16 @@ const AddEditCollectionModal = ({
                 CollectionNames.Categories,
               );
             } else {
+              // create a new collection
               const newCollection: Collection = {
-                id: v4(),
+                id,
                 recipientId,
                 caregiverId: (user as FirebaseAuthTypes.User).uid,
                 title,
-                cover,
+                cover: newCover,
               };
+
+              // add the new collection to the store and firestore
               addCollection(newCollection, dispatch);
               addDocument(newCollection, CollectionNames.Categories);
             }
@@ -102,9 +144,7 @@ const AddEditCollectionModal = ({
         />
       ),
     });
-  });
-
-  useHideBottomTab();
+  }, [title, coverSource, collection, id, cover]);
 
   return (
     <SafeAreaView
@@ -120,13 +160,10 @@ const AddEditCollectionModal = ({
           backgroundColor: theme.colors.tintedGrey[300],
           marginTop: theme.sizes[8],
         }}>
-        {cover.length > 0 && (
+        {coverSource.length > 0 && (
           <Image
-            source={{uri: cover}}
-            style={{
-              flex: 1,
-              borderRadius: theme.sizes[6],
-            }}
+            source={{uri: coverSource}}
+            style={{flex: 1, borderRadius: 24}}
           />
         )}
       </View>
@@ -138,7 +175,7 @@ const AddEditCollectionModal = ({
         onPress={async () => {
           const result = await pickSingleImage();
           if (result) {
-            setCover(result);
+            setCoverSource(result);
           }
         }}>
         <Text
@@ -146,7 +183,7 @@ const AddEditCollectionModal = ({
             fontSize: theme.sizes[3],
             color: theme.colors.primary[400],
           }}>
-          {cover.length > 0 ? 'Change Cover' : 'Add Cover'}
+          {coverSource.length > 0 ? 'Change Cover' : 'Add Cover'}
         </Text>
       </Pressable>
       <View

@@ -4,9 +4,19 @@ import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 
 // internal dependencies
 import {Caregiver} from 'store/slices/caregiversSlice';
-import {Recipient, RecipientUpdate} from 'store/slices/recipientsSlice';
+import {
+  Recipient,
+  RecipientBasicInfoUpdate,
+  RecipientPhotoUpdate,
+  RecipientUpdate,
+} from 'store/slices/recipientsSlice';
 import {Collection, CollectionUpdate} from 'store/slices/collectionsSlice';
-import {Set, SetUpdate} from 'store/slices/setsSlice';
+import {
+  Set,
+  SetAudioUpdate,
+  SetImageUpdate,
+  SetUpdate,
+} from 'store/slices/setsSlice';
 import {
   EmergencyContact,
   EmergencyContactUpdate,
@@ -48,7 +58,7 @@ export const addCaregiver = async (newUser: FirebaseAuthTypes.User) => {
 };
 
 /**
- * Add / update recipient to / in firestore
+ * Add / update / remove document(s) to / in firestore
  */
 export type DocumentType =
   | Caregiver
@@ -59,8 +69,12 @@ export type DocumentType =
 
 export type UpdateType =
   | SetUpdate
+  | SetAudioUpdate
+  | SetImageUpdate
   | EmergencyContactUpdate
   | RecipientUpdate
+  | RecipientPhotoUpdate
+  | RecipientBasicInfoUpdate
   | CollectionUpdate;
 
 export const addDocument = async (
@@ -79,6 +93,15 @@ export const updateDocument = async (
   collectionName: CollectionNames,
 ) => {
   await firestore().collection(collectionName).doc(id).update(update);
+};
+
+export const removeDocuments = async (
+  ids: string[],
+  collectionName: CollectionNames,
+) => {
+  for (const id of ids) {
+    await firestore().collection(collectionName).doc(id).delete();
+  }
 };
 
 /**

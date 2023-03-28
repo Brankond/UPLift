@@ -27,7 +27,8 @@ const pickSingleImage = async () => {
     return null;
   }
 
-  let localUri = (await MediaLibrary.getAssetInfoAsync(assetId)).localUri;
+  const assetInfo = await MediaLibrary.getAssetInfoAsync(assetId);
+  const localUri = assetInfo.localUri;
   if (!localUri) {
     console.log('Local URI of this asset is not available');
     return null;

@@ -8,16 +8,16 @@ import {
 // internal dependencies
 import {RootState} from 'store';
 import {fetchDataArrById, DataTypes, CollectionNames} from 'services/fireStore';
+import {Asset} from 'utils/types';
 
 export interface Recipient {
   id: string;
   caregiverId: string;
   firstName: string;
   lastName: string;
-  avatar: string;
+  photo: Asset;
   birthday: string | undefined;
   location: string;
-  isFallen: boolean;
 }
 
 export interface RecipientUpdate {
@@ -26,9 +26,16 @@ export interface RecipientUpdate {
   avatar: string;
   birthday: string | undefined;
   location: string;
-  isFallen: boolean;
-  contactCount: number;
-  collectionCount: number;
+}
+
+export interface RecipientPhotoUpdate {
+  photo: Asset;
+}
+
+export interface RecipientBasicInfoUpdate {
+  firstName: string;
+  lastName: string;
+  birthday: string | undefined;
 }
 
 // async fetch thunk
