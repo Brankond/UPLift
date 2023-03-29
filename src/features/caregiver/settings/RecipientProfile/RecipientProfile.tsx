@@ -38,6 +38,8 @@ import {
   recipientUpdated,
   RecipientPhotoUpdate,
   RecipientBasicInfoUpdate,
+  Recipient,
+  RecipientUpdate,
 } from 'store/slices/recipientsSlice';
 import {
   EmergencyContact,
@@ -114,13 +116,15 @@ const updateInformation = async (
   id: string,
   firstName: string,
   lastName: string,
+  exitCode: string,
   birthday: Date | undefined,
 ) => {
   // construct update object
-  const update: RecipientBasicInfoUpdate = {
+  const update: RecipientUpdate = {
     firstName,
     lastName,
     birthday: birthday?.toString() || undefined,
+    exitCode,
   };
 
   // update recipient in store
@@ -162,6 +166,7 @@ const Avatar = memo(({id, asset}: {id: string; asset: Asset}) => {
       <Pressable
         style={{
           marginBottom: theme.sizes[5],
+          alignItems: 'center',
         }}
         onPress={() => {
           updatePhoto(dispatch, id, asset.cloudStoragePath);
@@ -459,14 +464,18 @@ const InformationCard = memo(
     birthday,
     firstName,
     lastName,
+    exitCode,
     setFirstName,
     setLastName,
+    setExitCode,
   }: {
     id: string;
     firstName: string;
     lastName: string;
+    exitCode: string;
     setFirstName: React.Dispatch<React.SetStateAction<string>>;
     setLastName: React.Dispatch<React.SetStateAction<string>>;
+    setExitCode: React.Dispatch<React.SetStateAction<string>>;
     isInformationEditing: boolean;
     setDatePickerDisplayed: React.Dispatch<React.SetStateAction<boolean>>;
     birthday: Date | undefined;
@@ -516,7 +525,6 @@ const InformationCard = memo(
         <View
           style={{
             marginHorizontal: theme.sizes[4],
-            marginBottom: theme.sizes[8],
             padding: theme.sizes[4],
             borderRadius: theme.sizes[4],
             backgroundColor: theme.colors.tintedGrey[100],
@@ -607,6 +615,39 @@ const InformationCard = memo(
                 {birthday ? birthday.toLocaleDateString() : 'Not Set'}
               </Text>
             </Pressable>
+          </View>
+        </View>
+        <View
+          style={{
+            marginTop: 20,
+            marginHorizontal: theme.sizes[4],
+            marginBottom: theme.sizes[8],
+            padding: theme.sizes[4],
+            borderRadius: theme.sizes[4],
+            backgroundColor: theme.colors.tintedGrey[100],
+          }}>
+          <View style={[[generalStyles(theme).row]]}>
+            <Text style={[generalStyles(theme).text, styles.fieldLabel]}>
+              Exit Code
+            </Text>
+            <TextInput
+              inputMode="text"
+              placeholderTextColor={theme.colors.tintedGrey[600]}
+              placeholder="Not Set"
+              editable={isInformationEditing}
+              style={[
+                styles.textInput,
+                Platform.OS === 'android' && dimensions(theme).androidTextSize,
+                {
+                  color:
+                    (isInformationEditing && theme.colors.primary[400]) ||
+                    (firstName.length == 0 && theme.colors.tintedGrey[600]) ||
+                    theme.colors.darkText,
+                },
+              ]}
+              value={exitCode}
+              onChangeText={setExitCode}
+            />
           </View>
         </View>
       </>
@@ -821,7 +862,7 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   const recipientId = route.params.recipientId;
   const recipient = useAppSelector(state =>
     selectRecipientById(state, recipientId),
-  );
+  ) as Recipient;
   const contacts = useAppSelector(selectContactsByRecipientId(recipientId));
 
   const dispatch = useAppDispatch();
@@ -833,16 +874,15 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   const [isContactsEditing, setIsContactsEditing] = useState<boolean>(false);
   const [datePickerDisplayed, setDatePickerDisplayed] =
     useState<boolean>(false);
-  const [firstName, setFirstName] = useState<string>(
-    recipient?.firstName || '',
-  );
-  const [lastName, setLastName] = useState<string>(recipient?.lastName || '');
+  const [firstName, setFirstName] = useState<string>(recipient.firstName);
+  const [lastName, setLastName] = useState<string>(recipient.lastName);
+  const [exitCode, setExitCode] = useState<string>(recipient.exitCode);
   const [infoSaveSignal, setInfoSaveSignal] = useState<boolean>(false);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [contactsDeleteSignal, setContactsDeleteSignal] =
     useState<boolean>(false);
   const [dob, setDob] = useState<Date | undefined>(
-    recipient?.birthday ? new Date(recipient?.birthday) : undefined,
+    recipient.birthday ? new Date(recipient.birthday) : undefined,
   );
 
   // effect
@@ -853,7 +893,14 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
   useEffect(() => {
     // save changes to personal informatoin
     if (infoSaveSignal) {
-      updateInformation(dispatch, recipientId, firstName, lastName, dob);
+      updateInformation(
+        dispatch,
+        recipientId,
+        firstName,
+        lastName,
+        exitCode,
+        dob,
+      );
       setInfoSaveSignal(false);
     }
     // delete selected contacts
@@ -948,6 +995,8 @@ const RecipientProfile = ({navigation, route}: RecipientProfileProps) => {
             lastName={lastName}
             setLastName={setLastName}
             birthday={dob}
+            exitCode={exitCode}
+            setExitCode={setExitCode}
             isInformationEditing={isInformationEditing}
             setDatePickerDisplayed={setDatePickerDisplayed}
           />

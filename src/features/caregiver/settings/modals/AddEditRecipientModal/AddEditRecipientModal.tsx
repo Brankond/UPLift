@@ -27,7 +27,7 @@ import {useAppDispatch} from 'hooks';
 import pickSingleImage from 'utils/pickImage';
 import {AVATARS_FOLDER, uploadAsset} from 'services/cloudStorage';
 import {generalStyles} from 'features/global/authentication/authStyles';
-import {dimensions} from 'features/global/globalStyles';
+import {dimensions, typography} from 'features/global/globalStyles';
 import {AppDispatch} from 'store';
 import {Asset} from 'utils/types';
 
@@ -44,20 +44,21 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
   const {user} = useContext(AuthContext);
 
   // component state
+  const id = useMemo(() => {
+    return v4();
+  }, []);
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [birthday, setBirthDay] = useState<Date | undefined>(undefined);
   const [photoLocalUri, setPhotoLocalUri] = useState<string>('');
+  const [exitCode, setExitCode] = useState<string>('');
   const [timePickerDisplayed, setTimePickerDisplayed] =
     useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const id = useMemo(() => {
-    return v4();
-  }, []);
-
-  // refs
-  const firstNameInputRef = useRef<TextInput>(null);
-  const lastNameInputRef = useRef<TextInput>(null);
+  const saveReady = useMemo(
+    () => firstName.length > 0 && lastName.length > 0 && exitCode.length > 0,
+    [firstName, lastName, exitCode],
+  );
 
   // redux
   const dispatch = useAppDispatch();
@@ -87,7 +88,7 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
           </Pressable>
         ) : (
           <SaveButton
-            disabled={!(firstName.length > 0 || lastName.length > 0)}
+            disabled={!saveReady}
             onPress={async () => {
               // initialise an empty asset
               const photoAsset: Asset = {
@@ -117,6 +118,7 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
                 photo: photoAsset,
                 birthday: birthday?.toString() || undefined,
                 location: '4221 West Side Avenue',
+                exitCode,
               };
 
               // add recipient to redux and firestore
@@ -127,7 +129,7 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
           />
         ),
     });
-  }, [firstName, lastName, photoLocalUri, birthday, isEditing]);
+  }, [firstName, lastName, photoLocalUri, birthday, isEditing, saveReady]);
 
   // close datePicker when editing is finished
   useEffect(() => {
@@ -211,18 +213,17 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
             {photoLocalUri.length > 0 ? 'Change Photo' : 'Add Photo'}
           </Text>
         </Pressable>
-        {/* First name */}
         <View
           style={{
-            paddingVertical: theme.sizes[4],
-            borderRadius: theme.sizes[4],
+            paddingVertical: 16,
+            borderRadius: 16,
             backgroundColor: theme.colors.light[50],
-            paddingHorizontal: theme.sizes[5],
+            paddingHorizontal: 20,
           }}>
+          {/* First name */}
           <TextInput
             inputMode="text"
             placeholderTextColor={theme.colors.tintedGrey[500]}
-            ref={firstNameInputRef}
             onFocus={() => {
               setIsEditing(true);
               setTimePickerDisplayed(false);
@@ -247,7 +248,6 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
           <TextInput
             inputMode="text"
             placeholderTextColor={theme.colors.tintedGrey[500]}
-            ref={lastNameInputRef}
             onFocus={() => {
               setIsEditing(true);
               setTimePickerDisplayed(false);
@@ -300,6 +300,46 @@ const AddEditRecipientModal = ({navigation}: AddRecipientModalProps) => {
             </Pressable>
           </View>
         </View>
+        {/* Exit code */}
+        <View
+          style={{
+            marginTop: 24,
+            paddingVertical: 16,
+            borderRadius: 16,
+            backgroundColor: theme.colors.light[50],
+            paddingHorizontal: 20,
+          }}>
+          <TextInput
+            inputMode="text"
+            placeholderTextColor={theme.colors.tintedGrey[500]}
+            onFocus={() => {
+              setIsEditing(true);
+              setTimePickerDisplayed(false);
+            }}
+            onBlur={() => {
+              setIsEditing(false);
+            }}
+            value={exitCode}
+            onChangeText={setExitCode}
+            placeholder="Exit code"
+            keyboardType="default"
+            style={[
+              generalStyles(theme).text,
+              Platform.OS === 'android' && dimensions(theme).androidTextSize,
+              {
+                fontSize: 14,
+              },
+            ]}
+          />
+        </View>
+        <Text
+          style={[
+            typography(theme).smSecondaryText,
+            {marginTop: 8, marginHorizontal: 20},
+          ]}>
+          This is the code required to exit from the recipient view. You can
+          change it later.
+        </Text>
       </Pressable>
       {/* birthday picker */}
       {timePickerDisplayed && (

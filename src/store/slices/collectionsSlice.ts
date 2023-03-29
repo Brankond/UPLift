@@ -20,8 +20,8 @@ export interface Collection {
 }
 
 export interface CollectionUpdate {
-  title: string;
-  cover: Asset;
+  title?: string;
+  cover?: Asset;
 }
 
 export const fetchCollections = createAsyncThunk(

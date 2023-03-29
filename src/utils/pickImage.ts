@@ -16,7 +16,7 @@ const pickSingleImage = async () => {
     quality: 1,
   });
 
-  if (pickResult.canceled) {
+  if (!pickResult.assets) {
     console.log('User cancelled image picker');
     return null;
   }

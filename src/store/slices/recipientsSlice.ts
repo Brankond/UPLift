@@ -17,15 +17,18 @@ export interface Recipient {
   lastName: string;
   photo: Asset;
   birthday: string | undefined;
+  exitCode: string;
   location: string;
 }
 
 export interface RecipientUpdate {
-  firstName: string;
-  lastName: string;
-  avatar: string;
-  birthday: string | undefined;
-  location: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  photo?: Asset;
+  birthday?: string | undefined;
+  location?: string;
+  exitCode?: string;
 }
 
 export interface RecipientPhotoUpdate {

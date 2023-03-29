@@ -33,6 +33,7 @@ import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {Asset} from 'utils/types';
 import {COVERS_FOLDER, removeAsset, uploadAsset} from 'services/cloudStorage';
 import {getFileNameFromLocalUri} from 'utils/getFileNameFromLocalUri';
+import {isAssetInCloudStorage} from 'utils/isAssetInCloudStorage';
 
 /**
  * Handles the logic for adding and editing collections
@@ -69,9 +70,13 @@ const AddEditCollectionModal = ({
   const cover = useMemo(() => collection?.cover || undefined, [collection]);
   const [title, setTitle] = useState(collection ? collection.title : '');
   const [coverSource, setCoverSource] = useState(cover ? cover.url : '');
-  const isEditSaveable = useMemo(
-    () => cover?.url !== coverSource || collection?.title !== title,
-    [cover, coverSource, collection, title],
+  const isCoverChanged = useMemo(
+    () => cover?.url !== coverSource,
+    [cover, coverSource],
+  );
+  const isTitleChanged = useMemo(
+    () => collection?.title !== title,
+    [title, collection],
   );
 
   // redux
@@ -83,40 +88,40 @@ const AddEditCollectionModal = ({
       headerTitle: collection ? 'Edit Collection' : 'Add Collection',
       headerRight: () => (
         <SaveButton
-          disabled={!isEditSaveable}
+          disabled={!isCoverChanged && !isTitleChanged}
           onPress={async () => {
-            // create a new asset
-            const newCover: Asset = {
-              cloudStoragePath: '',
-              url: '',
-              localUri: coverSource,
-            };
+            if (collection) {
+              const update: CollectionUpdate = {};
 
-            // if a cover image is selected, upload it to cloud storage
-            if (coverSource.length > 0) {
-              // if previous cover image exists, delete it from cloud storage
-              if (cover) {
-                console.log(newCover);
-                await removeAsset(cover.cloudStoragePath);
+              // check if there is update on the cover image
+              if (isCoverChanged) {
+                if (cover) {
+                  if (isAssetInCloudStorage(cover)) {
+                    // if previous cover image exists, delete it from cloud storage
+                    await removeAsset(cover.cloudStoragePath);
+                  }
+                }
+
+                // upload the new cover image to cloud storage
+                const {url, cloudStoragePath} = await uploadAsset(
+                  recipientId,
+                  coverSource,
+                  COVERS_FOLDER,
+                  getFileNameFromLocalUri(coverSource),
+                );
+
+                const updateCover: Asset = {
+                  url,
+                  cloudStoragePath,
+                  localUri: coverSource,
+                };
+
+                update.cover = updateCover;
               }
 
-              // upload the new cover image to cloud storage
-              const {url, cloudStoragePath} = await uploadAsset(
-                recipientId,
-                coverSource,
-                COVERS_FOLDER,
-                getFileNameFromLocalUri(coverSource),
-              );
-              newCover.url = url;
-              newCover.cloudStoragePath = cloudStoragePath;
-            }
-
-            if (collection) {
-              // construct the update object
-              const update: CollectionUpdate = {
-                title,
-                cover: newCover,
-              };
+              if (isTitleChanged) {
+                update.title = title;
+              }
 
               // update the collection in the store and firestore
               updateCollection(collectionId as string, update, dispatch);
@@ -126,6 +131,25 @@ const AddEditCollectionModal = ({
                 CollectionNames.Categories,
               );
             } else {
+              const newCover: Asset = {
+                url: '',
+                cloudStoragePath: '',
+                localUri: coverSource,
+              };
+
+              if (coverSource.length > 0) {
+                // upload the new cover image to cloud storage
+                const {url, cloudStoragePath} = await uploadAsset(
+                  recipientId,
+                  coverSource,
+                  COVERS_FOLDER,
+                  getFileNameFromLocalUri(coverSource),
+                );
+
+                newCover.url = url;
+                newCover.cloudStoragePath = cloudStoragePath;
+              }
+
               // create a new collection
               const newCollection: Collection = {
                 id,

@@ -9,7 +9,7 @@ import {
   useMemo,
 } from 'react';
 import {
-  SafeAreaView,
+  StyleSheet,
   FlatList,
   View,
   Pressable,
@@ -17,20 +17,24 @@ import {
   Dimensions,
   Text,
   InteractionManager,
+  Modal,
+  ModalProps,
+  Platform,
 } from 'react-native';
-import {SvgXml} from 'react-native-svg';
+import {SvgCss, SvgXml} from 'react-native-svg';
 import PagerView from 'react-native-pager-view';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import TrackPlayer, {
-  Track,
-  usePlaybackState,
   useTrackPlayerEvents,
   Event,
 } from 'react-native-track-player';
+import * as Location from 'expo-location';
 import {useAppSelector} from 'hooks';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
 // internal dependencies
 import {RecipientViewProps} from 'navigators/navigation-types';
+import {Recipient, selectRecipientById} from 'store/slices/recipientsSlice';
 import {
   Collection,
   selectCollectionsByRecipientId,
@@ -40,10 +44,20 @@ import {
   selectSetById,
   Set,
 } from 'store/slices/setsSlice';
-import {ThemeContext} from 'contexts';
+import {selectContactsByRecipientId} from 'store/slices/emergencyContactsSlice';
+import {AuthContext, ThemeContext} from 'contexts';
 import {layout, typography} from 'features/global/globalStyles';
+import {ActionButton, FieldType, InputAppearance, TextField} from 'components';
+import {ScrollView} from 'react-native-gesture-handler';
+import {makePhoneCall} from 'utils/makePhoneCall';
+import {getUserLocation} from 'utils/getUserLocation';
+import {sendSms} from 'utils/sendSms';
 
+const dangerIconSvg = `<?xml version="1.0" ?><svg fill="#fafaf9" height="24" viewBox="-2 -3 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="m12.8 1.613 6.701 11.161c.963 1.603.49 3.712-1.057 4.71a3.213 3.213 0 0 1-1.743.516H3.298C1.477 18 0 16.47 0 14.581c0-.639.173-1.264.498-1.807L7.2 1.613C8.162.01 10.196-.481 11.743.517c.428.276.79.651 1.057 1.096zM10 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0-9a1 1 0 0 0-1 1v4a1 1 0 0 0 2 0V6a1 1 0 0 0-1-1z"/></svg>`;
+
+const playButtonIconSvg = `<svg width="192" height="90" viewBox="0 0 192 90" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M-4.36353 44.7272C96.0001 -98.8755 96.0001 188.33 196.364 44.7272" stroke="#4690FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 interface RecipientViewContextProps {
+  recipientId: string;
   currentCollectionId: string;
   currentSetId: string;
   setCurrentSetId?: React.Dispatch<React.SetStateAction<string>>;
@@ -51,6 +65,7 @@ interface RecipientViewContextProps {
 }
 
 const RecipientViewContext = createContext<RecipientViewContextProps>({
+  recipientId: '',
   currentCollectionId: '',
   currentSetId: '',
 });
@@ -94,7 +109,7 @@ const CollectionItem = memo(({collection}: {collection: Collection}) => {
             style={[
               {
                 flex: 1,
-                borderRadius: 12,
+                borderRadius: isSelected ? 12 - 1.5 : 12,
               },
             ]}
           />
@@ -186,9 +201,6 @@ const PlayButton = memo(() => {
   const {theme} = useContext(ThemeContext);
   const {currentSetId} = useContext(RecipientViewContext);
 
-  // svg
-  const xml = `<svg width="192" height="90" viewBox="0 0 192 90" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M-4.36353 44.7272C96.0001 -98.8755 96.0001 188.33 196.364 44.7272" stroke="#4690FF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
   // redux
   const set = useAppSelector(state => selectSetById(state, currentSetId));
 
@@ -257,12 +269,102 @@ const PlayButton = memo(() => {
               overflow: 'hidden',
             },
           ]}>
-          <SvgXml xml={xml} />
+          <SvgXml xml={playButtonIconSvg} />
         </Pressable>
       </View>
     </View>
   );
 });
+
+const ExitGuardModal = memo(
+  ({
+    visible,
+    setVisible,
+    onRequestClose,
+    exitCodeValid,
+    setExitCodeValid,
+  }: ModalProps & {
+    exitCodeValid: boolean;
+    setVisible: React.Dispatch<React.SetStateAction<boolean>>;
+    setExitCodeValid: React.Dispatch<React.SetStateAction<boolean>>;
+  }) => {
+    // context values
+    const {theme} = useContext(ThemeContext);
+    const {recipientId} = useContext(RecipientViewContext);
+    const navigation = useNavigation<RecipientViewProps['navigation']>();
+
+    // states
+    const [exitCode, setExitCode] = useState<string>('');
+    const [focusedField, setFocusedField] = useState<FieldType>(FieldType.None);
+
+    // redux
+    const recipient = useAppSelector(state =>
+      selectRecipientById(state, recipientId),
+    ) as Recipient;
+
+    // useEffects
+    useEffect(() => {
+      if (exitCodeValid) {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+      }
+    }, [exitCodeValid]);
+
+    return (
+      <Modal
+        animationType="fade"
+        visible={visible}
+        onRequestClose={onRequestClose}>
+        <Pressable
+          onPress={() => {
+            setVisible(false);
+          }}
+          style={[layout(theme).centered, {paddingHorizontal: 32, flex: 1}]}>
+          <TextField
+            placeholder={'Enter exit code'}
+            value={exitCode}
+            onChangeText={setExitCode}
+            fieldType={FieldType.Password}
+            focusedField={focusedField}
+            setFocusedField={setFocusedField}
+            icon={
+              <MaterialIcon
+                name="lock"
+                color={
+                  focusedField === FieldType.OTP
+                    ? theme.colors.primary[400]
+                    : theme.colors.tintedGrey[700]
+                }
+                size={18}
+              />
+            }
+            autoFocus={true}
+            appearance={InputAppearance.Round}
+          />
+          <View
+            style={[
+              {
+                marginTop: 16,
+                width: '100%',
+              },
+            ]}>
+            <ActionButton
+              text="Exit"
+              onPress={() => {
+                if (exitCode !== recipient.exitCode) {
+                  return;
+                }
+                setExitCodeValid(true);
+                setVisible(false);
+              }}
+            />
+          </View>
+        </Pressable>
+      </Modal>
+    );
+  },
+);
 
 const RecipientView = memo(({navigation, route}: RecipientViewProps) => {
   // context values
@@ -274,8 +376,24 @@ const RecipientView = memo(({navigation, route}: RecipientViewProps) => {
   // states
   const [currentCollectionId, setCurrentCollectionId] = useState<string>('');
   const [currentSetId, setCurrentSetId] = useState<string>('');
+  const [exitGuardModalVisible, setExitGuardModalVisible] =
+    useState<boolean>(false);
+  const [exitCodeValid, setExitCodeValid] = useState<boolean>(false);
+  const [pageHeight, setPageHeight] = useState<number>(0);
+
+  // styles
+  const styles = StyleSheet.create({
+    pageContainer: {
+      flex: 1,
+      height: pageHeight,
+    },
+  });
 
   // redux
+  const recipient = useAppSelector(state =>
+    selectRecipientById(state, recipientId),
+  ) as Recipient;
+  const contacts = useAppSelector(selectContactsByRecipientId(recipientId));
   const collections = useAppSelector(
     selectCollectionsByRecipientId(recipientId),
   );
@@ -286,32 +404,97 @@ const RecipientView = memo(({navigation, route}: RecipientViewProps) => {
     if (collections.length > 0) setCurrentCollectionId(collections[0].id);
   }, []);
 
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', e => {
+        if (exitCodeValid) {
+          console.log('exit code valid');
+          return;
+        }
+        console.log('exit code invalid');
+        e.preventDefault();
+        setExitGuardModalVisible(true);
+      }),
+    [navigation, exitCodeValid],
+  );
+
   return (
     <RecipientViewContext.Provider
       value={{
+        recipientId,
         currentCollectionId,
         currentSetId,
         setCurrentCollectionId,
         setCurrentSetId,
       }}>
-      <SafeAreaView
-        style={[
-          {
-            flex: 1,
-            backgroundColor: theme.colors.light[50],
-          },
-        ]}>
+      <ScrollView
+        pagingEnabled
+        style={[{flex: 1}]}
+        onLayout={e => setPageHeight(e.nativeEvent.layout.height)}>
         <View
           style={[
-            {
-              paddingHorizontal: 8,
-            },
+            styles.pageContainer,
+            {paddingTop: Platform.OS === 'ios' ? 48 : 0},
           ]}>
-          <CollectionList collections={collections} />
-          <SetGallery collectionId={currentCollectionId} />
+          <View
+            style={[
+              {
+                paddingHorizontal: 8,
+              },
+            ]}>
+            <CollectionList collections={collections} />
+            <SetGallery collectionId={currentCollectionId} />
+          </View>
+          <PlayButton />
+          <ExitGuardModal
+            visible={exitGuardModalVisible}
+            setVisible={setExitGuardModalVisible}
+            exitCodeValid={exitCodeValid}
+            setExitCodeValid={setExitCodeValid}
+          />
         </View>
-        <PlayButton />
-      </SafeAreaView>
+        <View
+          style={[
+            styles.pageContainer,
+            {backgroundColor: theme.colors.red[50]},
+          ]}>
+          <View style={[layout(theme).centered, {flex: 1}]}>
+            <Pressable
+              onPress={async () => {
+                const contact = contacts[0];
+                // const location = await getUserLocation();
+                await makePhoneCall(contact.contactNumbers[0]);
+                // await sendSms(
+                //   contact.contactNumbers[0],
+                //   recipient.firstName,
+                //   recipient.lastName,
+                //   contact.firstName,
+                //   contact.lastName,
+                //   JSON.stringify(location),
+                // );
+              }}
+              style={[
+                layout(theme).centered,
+                {
+                  backgroundColor: theme.colors.red[500],
+                  width: 240,
+                  height: 240,
+                  borderRadius: 240 / 2,
+                  shadowColor: theme.colors.red[600],
+                  shadowOffset: {
+                    width: 0,
+                    height: 0,
+                  },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 25,
+                  elevation: 10,
+                },
+              ]}>
+              <SvgCss xml={dangerIconSvg} height={'60%'} width={'60%'} />
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
     </RecipientViewContext.Provider>
   );
 });

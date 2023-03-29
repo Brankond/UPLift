@@ -279,36 +279,6 @@ const Login = ({navigation, route}: LoginProps) => {
   // states
   // const [mode, setMode] = useState<LoginMethod>(LoginMethod.Credentials);
 
-  // styles
-  // const styles = (isSelected?: boolean) =>
-  //   StyleSheet.create({
-  //     text: {
-  //       fontFamily: theme.fonts.main,
-  //       fontSize: 14,
-  //     },
-  //     labelContainer: {
-  //       flex: 1,
-  //       paddingVertical: (isSelected && 10) || 8,
-  //       backgroundColor: theme.colors.primary[(isSelected && 400) || 50],
-  //     },
-  //     labelText: {
-  //       fontWeight: theme.fontWeights.medium,
-  //       textAlign: 'center',
-  //       fontSize: (isSelected && 14) || 12,
-  //       color:
-  //         (isSelected && theme.colors.light[50]) || theme.colors.primary[400],
-  //     },
-  //     formBodyShadow: {
-  //       shadowColor: theme.colors.tintedGrey[400],
-  //       shadowOffset: {
-  //         width: 0,
-  //         height: -10,
-  //       },
-  //       shadowOpacity: 0.2,
-  //       shadowRadius: 5,
-  //     },
-  //   });
-
   return (
     <SafeAreaView style={[generalStyles(theme).bodyContainer]}>
       <Pressable
