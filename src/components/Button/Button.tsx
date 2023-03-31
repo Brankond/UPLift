@@ -21,7 +21,7 @@ const Button = ({title, onPress}: ButtonProps) => {
       <Text
         style={{
           fontFamily: theme.fonts.main,
-          fontSize: theme.fontSizes.md,
+          fontSize: 16,
           fontWeight: theme.fontWeights.bold,
           color: theme.colors.primary[400],
         }}>
@@ -33,7 +33,7 @@ const Button = ({title, onPress}: ButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    width: 125,
+    width: 192,
     height: 50,
     borderWidth: 2,
     borderRadius: 10,

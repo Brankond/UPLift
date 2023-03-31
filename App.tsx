@@ -7,6 +7,7 @@ import auth from '@react-native-firebase/auth';
 import {FirebaseAuthTypes} from '@react-native-firebase/auth';
 import {NativeBaseProvider} from 'native-base';
 import TrackPlayer, {usePlaybackState} from 'react-native-track-player';
+import {LogBox} from 'react-native';
 
 // internal dependencies
 import store from 'store';
@@ -14,6 +15,9 @@ import {addCaregiver} from 'services/fireStore';
 import {AuthContext, ThemeContext, theme} from 'contexts';
 import {AuthContextType} from 'contexts/AuthContext/AuthContext';
 import {RootNavigator} from 'navigators/RootNavigator';
+
+// ignore warnings
+LogBox.ignoreAllLogs();
 
 function App(): JSX.Element {
   /**

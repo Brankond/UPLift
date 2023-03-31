@@ -33,39 +33,39 @@ export const RoleSelection = ({navigation}: RoleSelectionProps) => {
       style={{
         ...styles.logo,
       }}>
-      <View
+      {/* <View
         style={{
           ...styles.slogan,
           backgroundColor: theme.colors.primary[400],
-        }}></View>
+        }}></View> */}
       <Text
         style={{
           fontFamily: theme.fonts.main,
           fontSize: theme.fontSizes['5xl'],
           fontWeight: theme.fontWeights.bold,
           color: theme.colors.primary[400],
-          marginBottom: 75,
+          marginBottom: 24,
         }}>
-        UPlift
+        Welcome!
       </Text>
-      <Text
+      {/* <Text
         style={{
           fontSize: theme.fontSizes.md,
           color: theme.colors.primary[400],
           marginBottom: 15,
         }}>
         I am a
-      </Text>
+      </Text> */}
       <Button
-        title="Caregiver"
+        title="Caregiver View"
         onPress={() => {
           navigation.navigate('Caregiver');
         }}
       />
       <Button
-        title="Recipient"
+        title="Recipient View"
         onPress={() => {
-          navigation.navigate('Recipient');
+          navigation.navigate('Recipient', {screen: 'Recipient Verification'});
         }}
       />
       <Button
