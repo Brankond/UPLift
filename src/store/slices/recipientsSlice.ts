@@ -1,34 +1,89 @@
 // external dependencies
-import {createSlice, createEntityAdapter} from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createEntityAdapter,
+  createAsyncThunk,
+} from '@reduxjs/toolkit';
 
 // internal dependencies
 import {RootState} from 'store';
+import {fetchDataArrById, DataTypes, CollectionNames} from 'services/fireStore';
+import {Asset} from 'utils/types';
 
 export interface Recipient {
   id: string;
-  caregiver_id: string;
-  first_name: string;
-  last_name: string;
-  avatar: string; // uri of the avatar image
-  date_of_birth: string | undefined;
-  location: string; // change to location object
-  is_fallen: boolean;
-  collection_count: number;
+  caregiverId: string;
+  firstName: string;
+  lastName: string;
+  photo: Asset;
+  birthday: string | undefined;
+  exitCode: string;
+  location: string;
 }
 
+export interface RecipientUpdate {
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  photo?: Asset;
+  birthday?: string | undefined;
+  location?: string;
+  exitCode?: string;
+}
+
+export interface RecipientPhotoUpdate {
+  photo: Asset;
+}
+
+export interface RecipientBasicInfoUpdate {
+  firstName: string;
+  lastName: string;
+  birthday: string | undefined;
+}
+
+// async fetch thunk
+export const fetchRecipients = createAsyncThunk(
+  'recipients/fetchRecipients',
+  async (caregiverId: string) => {
+    try {
+      const recipients = await fetchDataArrById(
+        caregiverId,
+        CollectionNames.Recipients,
+        DataTypes.caregiver,
+      );
+      return recipients as unknown as Recipient[];
+    } catch (error) {
+      console.log('Error fetching recipient data: ', error);
+      return [];
+    }
+  },
+);
+
 const recipientsAdapter = createEntityAdapter<Recipient>({
-  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name),
+  sortComparer: (a, b) => a.firstName.localeCompare(b.firstName),
 });
 
 const recipientsSlice = createSlice({
   name: 'recipients',
-  initialState: recipientsAdapter.getInitialState(),
+  initialState: recipientsAdapter.getInitialState({
+    status: 'idle',
+  }),
   reducers: {
     recipientAdded: recipientsAdapter.addOne,
     recipientUpdated: recipientsAdapter.updateOne,
     recipientRemoved: recipientsAdapter.removeOne,
     allRecipientsRemoved: recipientsAdapter.removeAll,
     manyRecipientsRemoved: recipientsAdapter.removeMany,
+  },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchRecipients.pending, (state, _) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchRecipients.fulfilled, (state, action) => {
+        recipientsAdapter.setAll(state, action.payload);
+        state.status = 'loaded';
+      });
   },
 });
 

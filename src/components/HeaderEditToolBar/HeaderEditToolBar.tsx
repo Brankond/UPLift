@@ -46,7 +46,7 @@ const HeaderEditToolBar = ({
                 paddingHorizontal: theme.sizes[3],
                 marginRight: theme.sizes[2],
                 borderRadius: theme.sizes['3.5'],
-                backgroundColor: theme.colors.light[200],
+                backgroundColor: theme.colors.tintedGrey[100],
               }}
               onPress={() => {
                 setIsEditing(true);

@@ -1,9 +1,10 @@
 import TrackPlayer, {State} from 'react-native-track-player';
 
-export const playAudio = (state: State) => {
+export const playAudio = async (state: State) => {
   if (state === State.Playing) {
-    TrackPlayer.pause();
+    await TrackPlayer.pause();
   } else if (state === State.Paused || state === State.Ready) {
-    TrackPlayer.play();
+    console.log('Attempt to play audio');
+    await TrackPlayer.play();
   }
 };
