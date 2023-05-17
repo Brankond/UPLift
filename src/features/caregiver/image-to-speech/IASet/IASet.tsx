@@ -113,9 +113,7 @@ const IASet = ({navigation, route}: SetProps) => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: set
-        ? set.imageTitle.charAt(0).toUpperCase() + set.imageTitle.slice(1)
-        : undefined,
+      headerTitle: (set as Set).imageTitle,
     });
   }, []);
 

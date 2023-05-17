@@ -79,12 +79,6 @@ const SwipeableRow = ({
           justifyContent: 'center',
         }}
         onPress={async () => {
-          // remove data from store
-          dispatch(recipientRemoved(recipient.id));
-          dispatch(manyCollectionsRemoved(collectionIds));
-          dispatch(manySetsRemoved(setIds));
-          dispatch(manyContactsRemoved(contactIds));
-
           // remove data from firestore
           removeDocuments(contactIds, CollectionNames.Contacts);
           removeDocuments([recipient.id], CollectionNames.Recipients);
@@ -106,6 +100,12 @@ const SwipeableRow = ({
             );
           }
           await removeAssets(collectionsCoversCloudStoragePaths);
+
+          // remove data from store
+          dispatch(recipientRemoved(recipient.id));
+          dispatch(manyCollectionsRemoved(collectionIds));
+          dispatch(manySetsRemoved(setIds));
+          dispatch(manyContactsRemoved(contactIds));
         }}>
         <AnimatedIcon
           name="delete"

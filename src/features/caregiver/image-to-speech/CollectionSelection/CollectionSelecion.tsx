@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
 import {Box, FlatList} from 'native-base';
-import {createSelector} from '@reduxjs/toolkit';
 import {useRoute, useNavigation} from '@react-navigation/native';
 
 // internal dependencies
@@ -19,7 +18,6 @@ import {CollectionSelectionProps} from 'navigators/navigation-types';
 import {useAppSelector, useAppDispatch} from 'hooks';
 import {
   Collection,
-  selectCollections,
   selectCollectionsByRecipientId,
   manyCollectionsRemoved,
 } from 'store/slices/collectionsSlice';
@@ -144,7 +142,8 @@ const CollectionCard = ({
           <Image
             source={{uri: cover.url}}
             style={{
-              flex: 1,
+              height: '100%',
+              width: '100%',
               borderRadius: 16,
             }}
           />

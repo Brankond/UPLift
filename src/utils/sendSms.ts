@@ -9,7 +9,7 @@ export const sendSms = async (
   contactLastName: string,
   locationString: string,
 ) => {
-  const message = `Dear ${contactFirstName} ${contactLastName}, you are receiving this message because you are registered as an emergency contact of ${recipientFirstName} ${recipientLastName}.\n${recipientFirstName} ${recipientLastName} is possibly in emergent situation at ${locationString}. Please take actions immediately.`;
+  const message = `[UPlift Emergency Alert]\n\nDear ${contactFirstName} ${contactLastName}, you are receiving this message because you are registered as an emergency contact of ${recipientFirstName} ${recipientLastName}.\n\n${recipientFirstName} ${recipientLastName} is possibly in emergent situation at:\n\n${locationString}.\n\nPlease take actions immediately.`;
 
   const url = `sms:${phoneNumber}${
     Platform.OS === 'ios' ? '&' : '?'
