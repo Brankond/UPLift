@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   useMemo,
 } from 'react';
 import {
@@ -146,9 +147,20 @@ const SetGallery = memo(({collectionId}: {collectionId: string}) => {
 
   // redux
   const sets = useAppSelector(selectSetsByCollectionId(collectionId));
+
+  // ref
+  const pagerViewRef = useRef<PagerView>(null);
+
+  useEffect(() => {
+    if (sets.length === 0) return;
+    setCurrentSetId && setCurrentSetId(sets[0].id);
+  }, [collectionId, sets.length]);
+
   return (
     (setCurrentSetId && (
       <PagerView
+        key={sets.toString()}
+        ref={pagerViewRef}
         style={[
           {
             height: Dimensions.get('window').width - 16 + textHeight + 12,
@@ -462,16 +474,16 @@ const RecipientView = memo(({navigation, route}: RecipientViewProps) => {
             <Pressable
               onPress={async () => {
                 const contact = contacts[0];
-                // const location = await getUserLocation();
-                await makePhoneCall(contact.contactNumbers[0]);
-                // await sendSms(
-                //   contact.contactNumbers[0],
-                //   recipient.firstName,
-                //   recipient.lastName,
-                //   contact.firstName,
-                //   contact.lastName,
-                //   JSON.stringify(location),
-                // );
+                const location = await getUserLocation();
+                // await makePhoneCall(contact.contactNumbers[0]);
+                await sendSms(
+                  contact.contactNumbers[0],
+                  recipient.firstName,
+                  recipient.lastName,
+                  contact.firstName,
+                  contact.lastName,
+                  JSON.stringify(location),
+                );
               }}
               style={[
                 layout(theme).centered,

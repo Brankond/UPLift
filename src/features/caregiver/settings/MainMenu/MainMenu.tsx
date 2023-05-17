@@ -217,12 +217,6 @@ const MainMenu = ({navigation}: MainMenuProps) => {
             isEditing={isEditing}
             editingUiAnimatedVal={editingUiAnimatedVal}
             onPress={async () => {
-              // remove data from store
-              dispatch(manySetsRemoved(setIds));
-              dispatch(manyCollectionsRemoved(collectionIds));
-              dispatch(manyContactsRemoved(contacts));
-              dispatch(manyRecipientsRemoved(selectedRecipients));
-
               // remove data from firestore
               await removeDocuments(setIds, CollectionNames.Sets);
               await removeDocuments(collectionIds, CollectionNames.Categories);
@@ -258,6 +252,12 @@ const MainMenu = ({navigation}: MainMenuProps) => {
                 );
               }
               await removeAssets(collectionsCoversCloudStoragePaths);
+
+              // remove data from store
+              dispatch(manySetsRemoved(setIds));
+              dispatch(manyCollectionsRemoved(collectionIds));
+              dispatch(manyContactsRemoved(contacts));
+              dispatch(manyRecipientsRemoved(selectedRecipients));
 
               // restore local states
               setSelectedRecipients([]);

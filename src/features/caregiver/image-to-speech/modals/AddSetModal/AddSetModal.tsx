@@ -27,6 +27,7 @@ import {AddSetModalProps, SetEditType} from 'navigators/navigation-types';
 import {useAppSelector, useAppDispatch} from 'hooks';
 import {
   Set,
+  SetUpdate,
   SetImageUpdate,
   SetAudioUpdate,
   selectSetById,
@@ -84,11 +85,7 @@ const addSet = (newSet: Set, dispatch: AppDispatch) => {
   dispatch(setAdded(newSet));
 };
 
-const updateSet = (
-  id: string,
-  update: SetImageUpdate | SetAudioUpdate,
-  dispatch: AppDispatch,
-) => {
+const updateSet = (id: string, update: SetUpdate, dispatch: AppDispatch) => {
   dispatch(
     setUpdated({
       id,
@@ -158,6 +155,23 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
     editType,
   ]);
 
+  /**
+   * The following variables are only used in the "update" case
+   */
+  const imageSourceUnsavedChanges = useMemo(() => {
+    return imageSource !== image?.url;
+  }, [imageSource, image]);
+  const imageTitleUnsavedChanges = useMemo(() => {
+    return imageTitle !== set?.imageTitle;
+  }, [imageTitle, set]);
+  const audioSourceUnsavedChanges = useMemo(() => {
+    return audioSource !== audio?.url;
+  }, [audioSource, audio]);
+  const audioTitleUnsavedChanges = useMemo(() => {
+    return audioTitle !== set?.audioTitle;
+  }, [audioTitle, set]);
+  /** End of "update" case variables */
+
   const playerState = usePlaybackState();
 
   // onload effects
@@ -209,27 +223,31 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
                */
               if (isUpdate) {
                 if ((editType as SetEditType) === SetEditType.Image) {
-                  await removeAsset((set as Set).image.cloudStoragePath);
-                  const {cloudStoragePath: imagePath, url: imageUrl} =
-                    await uploadAsset(
-                      recipientId as string,
-                      imageSource,
-                      `${SET_FOLDER}/${IMAGE_FOLDER}`,
-                      getFileNameFromLocalUri(imageSource),
-                    );
-                  newImage.cloudStoragePath = imagePath;
-                  newImage.url = imageUrl;
+                  if (imageSourceUnsavedChanges) {
+                    await removeAsset((set as Set).image.cloudStoragePath);
+                    const {cloudStoragePath: imagePath, url: imageUrl} =
+                      await uploadAsset(
+                        recipientId as string,
+                        imageSource,
+                        `${SET_FOLDER}/${IMAGE_FOLDER}`,
+                        getFileNameFromLocalUri(imageSource),
+                      );
+                    newImage.cloudStoragePath = imagePath;
+                    newImage.url = imageUrl;
+                  }
                 } else {
-                  await removeAsset((set as Set).audio.cloudStoragePath);
-                  const {cloudStoragePath: audioPath, url: audioUrl} =
-                    await uploadAsset(
-                      recipientId as string,
-                      audioSource,
-                      `${SET_FOLDER}/${AUDIO_FOLDER}`,
-                      getFileNameFromLocalUri(audioSource),
-                    );
-                  newAudio.cloudStoragePath = audioPath;
-                  newAudio.url = audioUrl;
+                  if (audioSourceUnsavedChanges) {
+                    await removeAsset((set as Set).audio.cloudStoragePath);
+                    const {cloudStoragePath: audioPath, url: audioUrl} =
+                      await uploadAsset(
+                        recipientId as string,
+                        audioSource,
+                        `${SET_FOLDER}/${AUDIO_FOLDER}`,
+                        getFileNameFromLocalUri(audioSource),
+                      );
+                    newAudio.cloudStoragePath = audioPath;
+                    newAudio.url = audioUrl;
+                  }
                 }
               } else {
                 const {cloudStoragePath: imagePath, url: imageUrl} =
@@ -255,19 +273,31 @@ const AddSetModal = ({navigation, route}: AddSetModalProps) => {
               // update redux and firestore
               if (isUpdate) {
                 if ((editType as SetEditType) === SetEditType.Image) {
-                  const update: SetImageUpdate = {
-                    image: newImage,
-                    imageTitle,
-                  };
-                  updateSet(setId as string, update, dispatch);
-                  updateDocument(setId as string, update, CollectionNames.Sets);
+                  if (imageSourceUnsavedChanges || imageTitleUnsavedChanges) {
+                    const update: SetUpdate = {
+                      ...(imageSourceUnsavedChanges && {image: newImage}),
+                      ...(imageTitleUnsavedChanges && {imageTitle}),
+                    };
+                    updateSet(setId as string, update, dispatch);
+                    updateDocument(
+                      setId as string,
+                      update,
+                      CollectionNames.Sets,
+                    );
+                  }
                 } else {
-                  const update: SetAudioUpdate = {
-                    audio: newAudio,
-                    audioTitle,
-                  };
-                  updateSet(setId as string, update, dispatch);
-                  updateDocument(setId as string, update, CollectionNames.Sets);
+                  if (audioSourceUnsavedChanges || audioTitleUnsavedChanges) {
+                    const update: SetUpdate = {
+                      ...(audioSourceUnsavedChanges && {audio: newAudio}),
+                      ...(audioTitleUnsavedChanges && {audioTitle}),
+                    };
+                    updateSet(setId as string, update, dispatch);
+                    updateDocument(
+                      setId as string,
+                      update,
+                      CollectionNames.Sets,
+                    );
+                  }
                 }
               } else {
                 const newSet: Set = {

@@ -23,10 +23,10 @@ export interface Set {
 }
 
 export interface SetUpdate {
-  imageTitle: string;
-  audioTitle: string;
-  image: Asset;
-  audio: Asset;
+  imageTitle?: string;
+  audioTitle?: string;
+  image?: Asset;
+  audio?: Asset;
 }
 
 export interface SetImageUpdate {

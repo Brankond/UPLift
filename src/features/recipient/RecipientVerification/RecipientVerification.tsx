@@ -236,7 +236,7 @@ const RecipientVerification = memo(() => {
               typography(theme).smSecondaryText,
               {textAlign: 'center', marginBottom: 24},
             ]}>
-            Select and enter the view of the intended recipient to enter
+            Select and enter the view of the intended recipient
           </Text>
           <SearchBar
             containerStyle={{
